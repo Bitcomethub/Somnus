@@ -5,12 +5,11 @@ import WhisperRecorder from '@/components/WhisperRecorder';
 import VisualCalibrator from '@/components/VisualCalibrator';
 import { TextInput, ActivityIndicator } from 'react-native';
 import SleepSyncScreen from '@/components/SleepSyncScreen';
-import { TextInput, ActivityIndicator } from 'react-native';
-import SleepSyncScreen from '@/components/SleepSyncScreen';
 import ShieldSelector, { ShieldMode } from '@/components/ShieldSelector';
 import SplashScreen from '@/components/SplashScreen';
 import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming, useSharedValue } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
+import io from 'socket.io-client';
 import io from 'socket.io-client';
 import BreathingLight from '@/components/BreathingLight'; // Phase 14
 import MicroSurvey from '@/components/MicroSurvey'; // Phase 14
