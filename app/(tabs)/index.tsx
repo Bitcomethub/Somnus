@@ -21,6 +21,7 @@ import FrostedGlassReveal from '@/components/FrostedGlassReveal';
 import VideoBackground from '@/components/VideoBackground';
 import SleepTimer from '@/components/SleepTimer';
 import GhostModePanel from '@/components/GhostModePanel';
+import PremiumLogo from '@/components/PremiumLogo';
 
 // --- Constants ---
 const SHIELD_SOUNDS: Record<string, any> = {
@@ -265,19 +266,16 @@ export default function HomeScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
 
-        {/* Header */}
-        <View className="px-6 pt-6 pb-4">
-          <View className="flex-row justify-between items-center mb-6">
-            {/* Sleep Mode Button */}
-            <TouchableOpacity onPress={() => setShowSleepMode(true)} className="bg-tingle-card p-2 rounded-full mr-2">
-              <Moon color="#8B5CF6" size={24} />
+        {/* Header with Premium Logo */}
+        <View className="pt-4 pb-2">
+          {/* Top Row: Utility Buttons */}
+          <View className="flex-row justify-between items-center px-4 mb-4">
+            {/* Left: Sleep Mode */}
+            <TouchableOpacity onPress={() => setShowSleepMode(true)} className="bg-tingle-card/50 p-2.5 rounded-full">
+              <Moon color="#8B5CF6" size={22} />
             </TouchableOpacity>
 
-            <Image
-              source={require('../../assets/somnus-banner.png')}
-              style={{ width: 140, height: 60, resizeMode: 'contain' }}
-            />
-
+            {/* Right: Controls */}
             <View className="flex-row items-center space-x-2">
               {/* Ghost Mode Indicator */}
               {isGhostMode && (
@@ -287,21 +285,24 @@ export default function HomeScreen() {
               )}
 
               {/* Ember Balance */}
-              <View className="bg-tingle-card px-3 py-1 rounded-full flex-row items-center border border-orange-500/30">
-                <Text className="text-orange-500 font-bold mr-1">🔥 {emberBalance}</Text>
+              <View className="bg-tingle-card/50 px-3 py-1.5 rounded-full flex-row items-center border border-orange-500/20">
+                <Text className="text-orange-400 font-bold text-xs">🔥 {emberBalance}</Text>
               </View>
 
               {/* Sleep Timer Button */}
-              <TouchableOpacity onPress={() => setShowSleepTimer(true)} className="bg-tingle-card p-2 rounded-full">
-                <Moon color="#fbbf24" size={20} />
+              <TouchableOpacity onPress={() => setShowSleepTimer(true)} className="bg-tingle-card/50 p-2.5 rounded-full">
+                <Moon color="#fbbf24" size={18} />
               </TouchableOpacity>
 
               {/* Ghost Mode Button */}
-              <TouchableOpacity onPress={() => setShowGhostPanel(true)} className="bg-tingle-card p-2 rounded-full">
-                <Headphones color={isGhostMode ? "#a855f7" : "#64748b"} size={24} />
+              <TouchableOpacity onPress={() => setShowGhostPanel(true)} className="bg-tingle-card/50 p-2.5 rounded-full">
+                <Headphones color={isGhostMode ? "#a855f7" : "#64748b"} size={22} />
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* Centered Premium Logo */}
+          <PremiumLogo mode={activeShield || 'default'} />
         </View>
 
         {/* AI Vibe Input */}
