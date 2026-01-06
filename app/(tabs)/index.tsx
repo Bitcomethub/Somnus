@@ -1,98 +1,223 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Wind, CloudRain, Zap, Mic, Heart, Headphones, Moon } from 'lucide-react-native';
+import axios from 'axios';
+import { API_URL } from '@/constants/API';
+import WhisperRecorder from '@/components/WhisperRecorder';
+import VisualCalibrator from '@/components/VisualCalibrator';
+import SleepSyncScreen from '@/components/SleepSyncScreen';
+import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming, useSharedValue } from 'react-native-reanimated';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+// Static profiles removed in favor of API
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+const soundWallItems = [
+  { id: 1, title: 'Midnight Rain', user: 'Elara', duration: '10s' },
+  { id: 2, title: 'Page Turning', user: 'BookLvr', duration: '15s' },
+  { id: 3, title: 'Cat Purr', user: 'Suki', duration: '30s' },
+  { id: 4, title: 'Keyboard Typing', user: 'DevGuy', duration: '20s' },
+  { id: 5, title: 'Wood Carving', user: 'Artisan', duration: '12s' },
+  { id: 6, title: 'Ocean Waves', user: 'Blue', duration: '45s' },
+];
+
+const [selectedProfile, setSelectedProfile] = useState<any>(null);
+const [showRecorder, setShowRecorder] = useState(false);
+const [showSleepMode, setShowSleepMode] = useState(false);
+const [profiles, setProfiles] = useState<any[]>([]);
+const [revealedProfiles, setRevealedProfiles] = useState<Set<number>>(new Set());
+
+const handleReveal = (profileId: number) => {
+  // Simulate listening to whisper -> Reveal
+  setRevealedProfiles(prev => new Set(prev).add(profileId));
+  setShowRecorder(true);
+};
+
+useEffect(() => {
+  // Quick MVP Fetch (mocking backend response structure for now to ensure UI works even if backend is not running in this env)
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/users`);
+      if (res.data && res.data.length > 0) {
+        setProfiles(res.data);
+      } else {
+        throw new Error("No data");
+      }
+    } catch (e) {
+      // Fallback
+      setProfiles([
+        { id: 1, username: 'Elara', favTrigger: 'Rain', avatarUrl: 'https://images.unsplash.com/photo-1493666438817-866a91353ca9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' },
+        { id: 2, username: 'Kael', favTrigger: 'Wind', avatarUrl: 'https://images.unsplash.com/photo-1542596594-649edbc13630?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' },
+      ]);
+    }
+  }
+  fetchUsers();
+  fetchUsers();
+}, []);
+
+const pulseScale = useSharedValue(1);
+useEffect(() => {
+  pulseScale.value = withRepeat(
+    withSequence(withTiming(1.05, { duration: 1000 }), withTiming(1, { duration: 1000 })),
+    -1,
+    true
   );
-}
+}, []);
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+const pulseStyle = useAnimatedStyle(() => ({
+  transform: [{ scale: pulseScale.value }]
+}));
+
+return (
+  <SafeAreaView className="flex-1 bg-tingle-bg">
+    <StatusBar barStyle="light-content" />
+    <SleepSyncScreen visible={showSleepMode} onClose={() => setShowSleepMode(false)} />
+    <VisualCalibrator />
+    <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
+
+      {/* Header */}
+      <View className="px-6 pt-6 pb-4">
+        <View className="flex-row justify-between items-center mb-6">
+          {/* Sleep Mode Trigger */}
+          <TouchableOpacity onPress={() => setShowSleepMode(true)} className="bg-tingle-card p-2 rounded-full mr-2">
+            <Moon color="#8B5CF6" size={24} />
+          </TouchableOpacity>
+
+          <Image
+            source={require('../../assets/somnus-banner.png')}
+            style={{ width: 140, height: 60, resizeMode: 'contain' }}
+          />
+
+          <TouchableOpacity className="bg-tingle-card p-2 rounded-full">
+            <Headphones color="#a855f7" size={24} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Tingle-mates Section */}
+        <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Senin Sesdaşların</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8 overflow-visible">
+          {profiles.map((profile) => (
+            <Animated.View key={profile.id} style={[pulseStyle]} className="mr-5">
+              <TouchableOpacity
+                className="items-center"
+                onPress={() => setSelectedProfile(profile)}
+                onLongPress={() => handleReveal(profile.id)}
+              >
+                <View className="relative">
+                  <Image
+                    source={{ uri: profile.avatarUrl || 'https://via.placeholder.com/150' }}
+                    className="w-20 h-20 rounded-full border-2 border-tingle-primary mb-2"
+                    blurRadius={revealedProfiles.has(profile.id) ? 0 : 10}
+                  />
+                  {!revealedProfiles.has(profile.id) && (
+                    <View className="absolute inset-0 items-center justify-center z-10">
+                      <Mic color="rgba(255,255,255,0.7)" size={24} />
+                    </View>
+                  )}
+                  <View className="absolute bottom-0 right-0 bg-tingle-bg rounded-full p-1 border border-tingle-card">
+                    <CloudRain size={12} color="#a855f7" />
+                  </View>
+                </View>
+                <Text className="text-white text-xs font-medium">{profile.username}</Text>
+                <Text className="text-gray-500 text-[10px]">{profile.favTrigger}</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          ))}
+        </ScrollView>
+
+        {/* Featured Vibe */}
+        <View className="mb-8">
+          <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Günün Vibe&apos;ı</Text>
+          <View className="bg-tingle-card rounded-3xl p-6 shadow-xl shadow-black/50">
+            <View className="flex-row justify-between items-center mb-4">
+              <View className="flex-row items-center space-x-2">
+                <CloudRain color="#a855f7" size={20} />
+                <Text className="text-white font-medium text-lg ml-2">Neon Yağmuru</Text>
+              </View>
+              <View className="bg-tingle-accent px-3 py-1 rounded-full">
+                <Text className="text-tingle-primary text-xs">Canlı</Text>
+              </View>
+            </View>
+            <Text className="text-gray-400 text-sm mb-4 leading-relaxed">
+              Tokyo sokaklarında gece yarısı yürüyüşü. Şemsiyeye düşen damlalar ve uzaktan gelen trafik sesi.
+            </Text>
+            <TouchableOpacity className="bg-tingle-primary w-full py-3 rounded-xl items-center">
+              <Text className="text-white font-bold tracking-wide">Dinle</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Sound Wall (Keşfet) */}
+        <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Sound Wall</Text>
+        <View className="flex-row flex-wrap justify-between">
+          {soundWallItems.map((item) => (
+            <View key={item.id} className="w-[48%] bg-tingle-card p-4 rounded-2xl mb-4">
+              <View className="flex-row justify-between items-start mb-2">
+                <View className="bg-tingle-accent p-2 rounded-full">
+                  <Mic size={16} color="#ffffff" />
+                </View>
+                <Text className="text-gray-500 text-xs">{item.duration}</Text>
+              </View>
+              <Text className="text-white font-medium mb-1">{item.title}</Text>
+              <Text className="text-gray-500 text-xs">@{item.user}</Text>
+            </View>
+          ))}
+        </View>
+
+      </View>
+    </ScrollView>
+
+    {/* Profile Modal */}
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={!!selectedProfile}
+      onRequestClose={() => setSelectedProfile(null)}
+    >
+      <BlurView intensity={90} tint="dark" className="flex-1 justify-center items-center p-6">
+        {selectedProfile && (
+          <View className="bg-tingle-card w-full rounded-3xl p-8 items-center shadow-2xl relative">
+            <TouchableOpacity
+              className="absolute top-4 right-4 bg-tingle-accent p-2 rounded-full"
+              onPress={() => setSelectedProfile(null)}
+            >
+              <Text className="text-white text-xs">✖</Text>
+            </TouchableOpacity>
+
+            <Image
+              source={{ uri: selectedProfile.avatarUrl }}
+              className="w-32 h-32 rounded-full mb-6 border-4 border-tingle-primary"
+            />
+            <Text className="text-2xl text-white font-bold mb-1">{selectedProfile.username}</Text>
+            <View className="flex-row items-center mb-6 space-x-2">
+              <Mic size={16} color="#a855f7" />
+              <Text className="text-tingle-primary text-sm ml-2">{selectedProfile.favTrigger} Lover</Text>
+            </View>
+
+            <Text className="text-gray-400 text-center mb-8 leading-relaxed">
+              &quot;{selectedProfile.favTrigger} sesiyle uyumayı seviyorum. Tingle&apos;da sessizce kitap okuyabileceğimiz bir &apos;Binaural Date&apos; arıyorum.&quot;
+            </Text>
+
+            {showRecorder ? (
+              <WhisperRecorder receiverId={selectedProfile.id} onSent={() => setShowRecorder(false)} />
+            ) : (
+              <View className="flex-row w-full justify-between space-x-4">
+                <TouchableOpacity
+                  className="flex-1 bg-tingle-accent py-4 rounded-xl items-center flex-row justify-center space-x-2"
+                  onPress={() => setShowRecorder(true)}
+                >
+                  <Mic size={20} color="white" />
+                  <Text className="text-white font-medium ml-2">Ses At</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity className="flex-1 bg-tingle-primary py-4 rounded-xl items-center flex-row justify-center space-x-2">
+                  <Heart size={20} color="white" />
+                  <Text className="text-white font-medium ml-2">Eşleş</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+      </BlurView>
+    </Modal>
+
+  </SafeAreaView>
+);
+}

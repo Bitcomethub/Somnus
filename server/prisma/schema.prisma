@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  favTrigger String?
+  avatarUrl String?
+  triggerInventory String[]
+  currentVibe      String?
+  sensoryTolerance Int      @default(5) // 1-10 Scale (1: Whisper only, 10: Loud storms)
+  createdAt DateTime @default(now())
+
+  sentWhispers    Whisper[] @relation("Sender")
+  receivedWhispers Whisper[] @relation("Receiver")
+  
+  matchesAsA Match[] @relation("UserA")
+  matchesAsB Match[] @relation("UserB")
+
+  sessions ListeningSession[]
+}
+
+model ListeningSession {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  trigger   String
+  duration  Int      // Seconds
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Match {
+  id        Int      @id @default(autoincrement())
+  userAId   Int
+  userBId   Int
+  createdAt DateTime @default(now())
+
+  userA     User     @relation("UserA", fields: [userAId], references: [id])
+  userB     User     @relation("UserB", fields: [userBId], references: [id])
+}
+
+model Whisper {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  audioData  String   // Base64 string for simplicity in MVP
+  createdAt  DateTime @default(now())
+
+  sender     User     @relation("Sender", fields: [senderId], references: [id])
+  receiver   User     @relation("Receiver", fields: [receiverId], references: [id])
+}
