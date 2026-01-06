@@ -9,8 +9,14 @@ import ShieldSelector, { ShieldMode } from '@/components/ShieldSelector';
 import SplashScreen from '@/components/SplashScreen';
 import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming, useSharedValue } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
+import ShieldSelector, { ShieldMode } from '@/components/ShieldSelector';
+import SplashScreen from '@/components/SplashScreen';
+import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming, useSharedValue } from 'react-native-reanimated';
+import { Audio } from 'expo-av';
 import io from 'socket.io-client';
-import SoulSurvey from '@/components/SoulSurvey'; // Phase 14
+import BreathingLight from '@/components/BreathingLight'; // Phase 14
+import MicroSurvey from '@/components/MicroSurvey'; // Phase 14
+// import SoulSurvey from '@/components/SoulSurvey'; // Removed for Audio-First Pivot
 
 // Static profiles removed in favor of API
 
