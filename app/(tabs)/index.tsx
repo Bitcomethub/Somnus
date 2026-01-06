@@ -10,7 +10,6 @@ import SplashScreen from '@/components/SplashScreen';
 import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming, useSharedValue } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
 import io from 'socket.io-client';
-import io from 'socket.io-client';
 import BreathingLight from '@/components/BreathingLight'; // Phase 14
 import MicroSurvey from '@/components/MicroSurvey'; // Phase 14
 import FrostedGlassReveal from '@/components/FrostedGlassReveal'; // Phase 14
