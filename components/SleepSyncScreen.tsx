@@ -1,4 +1,3 @@
-```
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
@@ -36,28 +35,28 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
     // Experience: Screen Dimmer & Graceful Exit
     useEffect(() => {
         let originalBrightness: number;
-        
+
         const setupExperience = async () => {
-             // 1. Background Audio Setup
-             try {
+            // 1. Background Audio Setup
+            try {
                 await Audio.setAudioModeAsync({
                     staysActiveInBackground: true,
                     playsInSilentModeIOS: true,
                     shouldDuckAndroid: true,
                     playThroughEarpieceAndroid: false,
                 });
-             } catch (e) {
-                 console.log("Audio mode error", e);
-             }
+            } catch (e) {
+                console.log("Audio mode error", e);
+            }
 
-             // 2. Dim Screen
-             try {
-                 const { status } = await Brightness.requestPermissionsAsync();
-                 if (status === 'granted') {
-                     originalBrightness = await Brightness.getBrightnessAsync();
-                     await Brightness.setBrightnessAsync(0.05); // Dim to 5%
-                 }
-             } catch (e) { console.log('Brightness error', e); }
+            // 2. Dim Screen
+            try {
+                const { status } = await Brightness.requestPermissionsAsync();
+                if (status === 'granted') {
+                    originalBrightness = await Brightness.getBrightnessAsync();
+                    await Brightness.setBrightnessAsync(0.05); // Dim to 5%
+                }
+            } catch (e) { console.log('Brightness error', e); }
         };
 
         setupExperience();
@@ -75,69 +74,69 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
     const handlePanic = () => {
         // Immediate Block & Leave
         setStatus("BLOCKING...");
-        
+
         setTimeout(() => {
-    if (socket.current) socket.current.disconnect();
-    onClose();
-}, 500);
+            if (socket.current) socket.current.disconnect();
+            onClose();
+        }, 500);
     };
 
-const myWave = useSharedValue(1);
-const partnerWave = useSharedValue(1);
+    const myWave = useSharedValue(1);
+    const partnerWave = useSharedValue(1);
 
-useEffect(() => {
-    socket.current = io(API_URL);
-    socket.current.emit('join_sleep_room', roomId);
+    useEffect(() => {
+        socket.current = io(API_URL);
+        socket.current.emit('join_sleep_room', roomId);
 
-    socket.current.on('sync_play', () => {
-        setStatus('Partner is syncing...');
-    });
+        socket.current.on('sync_play', () => {
+            setStatus('Partner is syncing...');
+        });
 
-    // Real-time Pulse Listener
-    socket.current.on('sync_pulse', (data: { amplitude: number }) => {
-        // Apply organic spring physics to the pulse
-        partnerWave.value = withSpring(data.amplitude, { damping: 10, stiffness: 80 });
-        myWave.value = withSpring(data.amplitude * 0.9, { damping: 12, stiffness: 90 }); // Slight variation
-    });
+        // Real-time Pulse Listener
+        socket.current.on('sync_pulse', (data: { amplitude: number }) => {
+            // Apply organic spring physics to the pulse
+            partnerWave.value = withSpring(data.amplitude, { damping: 10, stiffness: 80 });
+            myWave.value = withSpring(data.amplitude * 0.9, { damping: 12, stiffness: 90 }); // Slight variation
+        });
 
-    return () => {
-        socket.current?.disconnect();
-    };
-}, []);
+        return () => {
+            socket.current?.disconnect();
+        };
+    }, []);
 
-return (
-    <View style={styles.container}>
-        {/* Ultra-Dark OLED Background */}
-        <View style={styles.background} />
+    return (
+        <View style={styles.container}>
+            {/* Ultra-Dark OLED Background */}
+            <View style={styles.background} />
 
-        {/* Visualizer: Dual Waves */}
-        <View style={styles.visualizerContainer}>
-            <Wave color="#A855F7" duration={4500} scaleVal={myWave} />
-            <Wave color="#3B82F6" duration={4500} scaleVal={partnerWave} />
+            {/* Visualizer: Dual Waves */}
+            <View style={styles.visualizerContainer}>
+                <Wave color="#A855F7" duration={4500} scaleVal={myWave} />
+                <Wave color="#3B82F6" duration={4500} scaleVal={partnerWave} />
 
-            <View style={styles.core}>
-                <Moon size={32} color="rgba(255,255,255,0.5)" />
+                <View style={styles.core}>
+                    <Moon size={32} color="rgba(255,255,255,0.5)" />
+                </View>
             </View>
+
+            <View style={styles.textContainer}>
+                <Text style={styles.statusText}>{status}</Text>
+                <Text style={styles.subSlogan}>Cinsellik değil, duyusal bir ortaklık.</Text>
+                <Text style={styles.subSlogan}>Yalnız Uyumaya Elveda.</Text>
+            </View>
+
+            <TouchableOpacity style={styles.leaveButton} onPress={onClose}>
+                <Power color="#64748b" size={24} />
+                <Text style={styles.leaveText}>Leave Quietly</Text>
+            </TouchableOpacity>
+
+            {/* Panic Button */}
+            <TouchableOpacity style={styles.panicButton} onPress={handlePanic}>
+                <ShieldAlert color="#ef4444" size={20} />
+                <Text style={styles.panicText}>BLOCK</Text>
+            </TouchableOpacity>
         </View>
-
-        <View style={styles.textContainer}>
-            <Text style={styles.statusText}>{status}</Text>
-            <Text style={styles.subSlogan}>Cinsellik değil, duyusal bir ortaklık.</Text>
-            <Text style={styles.subSlogan}>Yalnız Uyumaya Elveda.</Text>
-        </View>
-
-        <TouchableOpacity style={styles.leaveButton} onPress={onClose}>
-            <Power color="#64748b" size={24} />
-            <Text style={styles.leaveText}>Leave Quietly</Text>
-        </TouchableOpacity>
-
-        {/* Panic Button */}
-        <TouchableOpacity style={styles.panicButton} onPress={handlePanic}>
-            <ShieldAlert color="#ef4444" size={20} />
-            <Text style={styles.panicText}>BLOCK</Text>
-        </TouchableOpacity>
-    </View>
-);
+    );
 }
 
 const styles = StyleSheet.create({
