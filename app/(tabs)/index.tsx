@@ -1,8 +1,9 @@
-import { Wind, CloudRain, Zap, Mic, Heart, Headphones, Moon } from 'lucide-react-native';
+import { Wind, CloudRain, Zap, Mic, Heart, Headphones, Moon, Sparkles } from 'lucide-react-native';
 import axios from 'axios';
 import { API_URL } from '@/constants/API';
 import WhisperRecorder from '@/components/WhisperRecorder';
 import VisualCalibrator from '@/components/VisualCalibrator';
+import { TextInput, ActivityIndicator } from 'react-native';
 import SleepSyncScreen from '@/components/SleepSyncScreen';
 import ShieldSelector, { ShieldMode } from '@/components/ShieldSelector';
 import SplashScreen from '@/components/SplashScreen';
@@ -16,11 +17,9 @@ import io from 'socket.io-client';
 const soundWallItems = [
   { id: 1, title: 'Midnight Rain', user: 'Elara', duration: '10s' },
   { id: 2, title: 'Page Turning', user: 'BookLvr', duration: '15s' },
-  { id: 3, title: 'Cat Purr', user: 'Suki', duration: '30s' },
-  { id: 4, title: 'Keyboard Typing', user: 'DevGuy', duration: '20s' },
-  { id: 5, title: 'Wood Carving', user: 'Artisan', duration: '12s' },
-  { id: 6, title: 'Ocean Waves', user: 'Blue', duration: '45s' },
 ];
+
+const RECOMMENDED_VIBES = ["Tired from work", "Need focus", "Anxious", "Just waking up"];
 
 const [selectedProfile, setSelectedProfile] = useState<any>(null);
 const [showRecorder, setShowRecorder] = useState(false);
@@ -152,188 +151,239 @@ useEffect(() => {
     -1,
     true
   );
-}, []);
+  // AI Vibe Check
+  const [vibeText, setVibeText] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-const pulseStyle = useAnimatedStyle(() => ({
-  transform: [{ scale: pulseScale.value }]
-}));
+  const handleVibeCheck = async (text: string) => {
+    if (!text.trim()) return;
+    setIsAnalyzing(true);
+    setVibeText(text);
+    try {
+      // Call Backend AI
+      const res = await axios.post(`${API_URL}/vibe-check`, { statusText: text });
+      const { mode, vibe } = res.data;
 
-return (
-  <SafeAreaView className="flex-1 bg-tingle-bg">
-    <StatusBar barStyle="light-content" />
-    <SleepSyncScreen visible={showSleepMode} onClose={() => setShowSleepMode(false)} />
-    <VisualCalibrator />
-    <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
+      // Auto-switch Shield
+      if (mode) handleShieldSelect(mode as ShieldMode);
+      alert(`Somnus AI: Switching to ${mode} mode for "${vibe}" vibes.`);
+    } catch (e) {
+      // Fallback
+      handleShieldSelect('nomad');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }
 
-      {/* Header */}
-      <View className="px-6 pt-6 pb-4">
-        <View className="flex-row justify-between items-center mb-6">
-          {/* Sleep Mode Trigger */}
-          <TouchableOpacity onPress={() => setShowSleepMode(true)} className="bg-tingle-card p-2 rounded-full mr-2">
-            <Moon color="#8B5CF6" size={24} />
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }]
+  }));
+
+  return (
+    <SafeAreaView className="flex-1 bg-tingle-bg">
+      <StatusBar barStyle="light-content" />
+      <SleepSyncScreen visible={showSleepMode} onClose={() => setShowSleepMode(false)} />
+      <VisualCalibrator />
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
+
+        {/* Header */}
+        <View className="px-6 pt-6 pb-4">
+          <View className="flex-row justify-between items-center mb-6">
+            {/* Sleep Mode Trigger */}
+            <TouchableOpacity onPress={() => setShowSleepMode(true)} className="bg-tingle-card p-2 rounded-full mr-2">
+              <Moon color="#8B5CF6" size={24} />
+            </TouchableOpacity>
+
+            <Image
+              source={require('../../assets/somnus-banner.png')}
+              style={{ width: 140, height: 60, resizeMode: 'contain' }}
+            />
+
+            <View className="flex-row items-center space-x-2">
+              <View className="bg-tingle-card px-3 py-1 rounded-full flex-row items-center border border-orange-500/30">
+                <Text className="text-orange-500 font-bold mr-1">🔥 {emberBalance}</Text>
+              </View>
+              <TouchableOpacity className="bg-tingle-card p-2 rounded-full">
+                <Headphones color="#a855f7" size={24} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* AI Vibe Input */}
+        <View className="mx-6 mb-8">
+          <Text className="text-gray-400 text-xs mb-2 uppercase tracking-widest pl-1">Vibe Engine (AI)</Text>
+          <View className="flex-row items-center bg-tingle-card rounded-xl p-2 border border-white/10">
+            <TextInput
+              placeholder="How are you feeling?"
+              placeholderTextColor="#64748b"
+              className="flex-1 text-white p-2"
+              value={vibeText}
+              onChangeText={setVibeText}
+              onSubmitEditing={() => handleVibeCheck(vibeText)}
+            />
+            <TouchableOpacity
+              onPress={() => handleVibeCheck(vibeText)}
+              disabled={isAnalyzing}
+              className="bg-tingle-primary p-2 rounded-lg"
+            >
+              {isAnalyzing ? <ActivityIndicator color="white" size="small" /> : <Zap size={18} color="white" />}
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+            {RECOMMENDED_VIBES.map((v, i) => (
+              <TouchableOpacity key={i} onPress={() => handleVibeCheck(v)} className="mr-2 bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                <Text className="text-gray-400 text-xs">{v}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Sensory Shield Selector */}
+        <ShieldSelector
+          activeMode={activeShield}
+          onSelect={handleShieldSelect}
+          counts={shieldCounts}
+        />
+
+        {/* Silent High Five Button (Visible when Shield Active) */}
+        {activeShield && (
+          <TouchableOpacity
+            onPress={sendHeartbeat}
+            className="mx-6 mb-6 bg-tingle-primary p-4 rounded-xl flex-row justify-center items-center"
+          >
+            <Heart size={20} color="white" fill="white" />
+            <Text className="text-white font-bold ml-2">I&apos;m Here ({shieldCounts[activeShield] || 1})</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Tingle-mates Section */}
+        <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Senin Sesdaşların</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8 overflow-visible">
+          {profiles.map((profile) => (
+            <Animated.View key={profile.id} style={[pulseStyle]} className="mr-5">
+              <TouchableOpacity
+                className="items-center"
+                onPress={() => setSelectedProfile(profile)}
+                onLongPress={() => handleReveal(profile.id)}
+              >
+                <View className="relative">
+                  <Image
+                    source={{ uri: profile.avatarUrl || 'https://via.placeholder.com/150' }}
+                    className="w-20 h-20 rounded-full border-2 border-tingle-primary mb-2"
+                    blurRadius={revealedProfiles.has(profile.id) ? 0 : 10}
+                  />
+                  {!revealedProfiles.has(profile.id) && (
+                    <View className="absolute inset-0 items-center justify-center z-10">
+                      <Mic color="rgba(255,255,255,0.7)" size={24} />
+                    </View>
+                  )}
+                  <View className="absolute bottom-0 right-0 bg-tingle-bg rounded-full p-1 border border-tingle-card">
+                    <CloudRain size={12} color="#a855f7" />
+                  </View>
+                </View>
+                <Text className="text-white text-xs font-medium">{profile.username}</Text>
+                <Text className="text-gray-500 text-[10px]">{profile.favTrigger}</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          ))}
+        </ScrollView>
+
+        {/* Featured Vibe */}
+        <View className="mb-8">
+          <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Günün Vibe&apos;ı</Text>
+          <View className="bg-tingle-card rounded-3xl p-6 shadow-xl shadow-black/50">
+            <View className="flex-row justify-between items-center mb-4">
+              <View className="flex-row items-center space-x-2">
+                <CloudRain color="#a855f7" size={20} />
+                <Text className="text-white font-medium text-lg ml-2">Neon Yağmuru</Text>
+              </View>
+              <View className="bg-tingle-accent px-3 py-1 rounded-full">
+                <Text className="text-tingle-primary text-xs">Canlı</Text>
+              </View>
+            </View>
+            <Text className="text-gray-400 text-sm mb-4 leading-relaxed">
+              Tokyo sokaklarında gece yarısı yürüyüşü. Şemsiyeye düşen damlalar ve uzaktan gelen trafik sesi.
+            </Text>
+            <TouchableOpacity className="bg-tingle-primary w-full py-3 rounded-xl items-center">
+              <Text className="text-white font-bold tracking-wide">Dinle</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Sound Wall (Keşfet) */}
+        <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Sound Wall</Text>
+        <View className="flex-row flex-wrap justify-between">
+          {soundWallItems.map((item) => (
+            <View key={item.id} className="w-[48%] bg-tingle-card p-4 rounded-2xl mb-4">
+              <View className="flex-row justify-between items-start mb-2">
+                <View className="bg-tingle-accent p-2 rounded-full">
+                  <Mic size={16} color="#ffffff" />
+                </View>
+                <Text className="text-gray-500 text-xs">{item.duration}</Text>
+              </View>
+              <Text className="text-white font-medium mb-1">{item.title}</Text>
+              <Text className="text-gray-500 text-xs">@{item.user}</Text>
+            </View>
+          ))}
+        </View>
+
+      </View>
+    </ScrollView>
+
+    {/* Profile Modal */ }
+  <Modal
+    animationType="fade"
+    transparent={true}
+    visible={!!selectedProfile}
+    onRequestClose={() => setSelectedProfile(null)}
+  >
+    <BlurView intensity={90} tint="dark" className="flex-1 justify-center items-center p-6">
+      {selectedProfile && (
+        <View className="bg-tingle-card w-full rounded-3xl p-8 items-center shadow-2xl relative">
+          <TouchableOpacity
+            className="absolute top-4 right-4 bg-tingle-accent p-2 rounded-full"
+            onPress={() => setSelectedProfile(null)}
+          >
+            <Text className="text-white text-xs">✖</Text>
           </TouchableOpacity>
 
           <Image
-            source={require('../../assets/somnus-banner.png')}
-            style={{ width: 140, height: 60, resizeMode: 'contain' }}
+            source={{ uri: selectedProfile.avatarUrl }}
+            className="w-32 h-32 rounded-full mb-6 border-4 border-tingle-primary"
           />
-
-          <View className="flex-row items-center space-x-2">
-            <View className="bg-tingle-card px-3 py-1 rounded-full flex-row items-center border border-orange-500/30">
-              <Text className="text-orange-500 font-bold mr-1">🔥 {emberBalance}</Text>
-            </View>
-            <TouchableOpacity className="bg-tingle-card p-2 rounded-full">
-              <Headphones color="#a855f7" size={24} />
-            </TouchableOpacity>
+          <Text className="text-2xl text-white font-bold mb-1">{selectedProfile.username}</Text>
+          <View className="flex-row items-center mb-6 space-x-2">
+            <Mic size={16} color="#a855f7" />
+            <Text className="text-tingle-primary text-sm ml-2">{selectedProfile.favTrigger} Lover</Text>
           </View>
-        </View>
-      </View>
 
-      {/* Sensory Shield Selector */}
-      <ShieldSelector
-        activeMode={activeShield}
-        onSelect={handleShieldSelect}
-        counts={shieldCounts}
-      />
-
-      {/* Silent High Five Button (Visible when Shield Active) */}
-      {activeShield && (
-        <TouchableOpacity
-          onPress={sendHeartbeat}
-          className="mx-6 mb-6 bg-tingle-primary p-4 rounded-xl flex-row justify-center items-center"
-        >
-          <Heart size={20} color="white" fill="white" />
-          <Text className="text-white font-bold ml-2">I&apos;m Here ({shieldCounts[activeShield] || 1})</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Tingle-mates Section */}
-      <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Senin Sesdaşların</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8 overflow-visible">
-        {profiles.map((profile) => (
-          <Animated.View key={profile.id} style={[pulseStyle]} className="mr-5">
-            <TouchableOpacity
-              className="items-center"
-              onPress={() => setSelectedProfile(profile)}
-              onLongPress={() => handleReveal(profile.id)}
-            >
-              <View className="relative">
-                <Image
-                  source={{ uri: profile.avatarUrl || 'https://via.placeholder.com/150' }}
-                  className="w-20 h-20 rounded-full border-2 border-tingle-primary mb-2"
-                  blurRadius={revealedProfiles.has(profile.id) ? 0 : 10}
-                />
-                {!revealedProfiles.has(profile.id) && (
-                  <View className="absolute inset-0 items-center justify-center z-10">
-                    <Mic color="rgba(255,255,255,0.7)" size={24} />
-                  </View>
-                )}
-                <View className="absolute bottom-0 right-0 bg-tingle-bg rounded-full p-1 border border-tingle-card">
-                  <CloudRain size={12} color="#a855f7" />
-                </View>
-              </View>
-              <Text className="text-white text-xs font-medium">{profile.username}</Text>
-              <Text className="text-gray-500 text-[10px]">{profile.favTrigger}</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        ))}
-      </ScrollView>
-
-      {/* Featured Vibe */}
-      <View className="mb-8">
-        <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Günün Vibe&apos;ı</Text>
-        <View className="bg-tingle-card rounded-3xl p-6 shadow-xl shadow-black/50">
-          <View className="flex-row justify-between items-center mb-4">
-            <View className="flex-row items-center space-x-2">
-              <CloudRain color="#a855f7" size={20} />
-              <Text className="text-white font-medium text-lg ml-2">Neon Yağmuru</Text>
-            </View>
-            <View className="bg-tingle-accent px-3 py-1 rounded-full">
-              <Text className="text-tingle-primary text-xs">Canlı</Text>
-            </View>
-          </View>
-          <Text className="text-gray-400 text-sm mb-4 leading-relaxed">
-            Tokyo sokaklarında gece yarısı yürüyüşü. Şemsiyeye düşen damlalar ve uzaktan gelen trafik sesi.
+          <Text className="text-gray-400 text-center mb-8 leading-relaxed">
+            &quot;{selectedProfile.favTrigger} sesiyle uyumayı seviyorum. Tingle&apos;da sessizce kitap okuyabileceğimiz bir &apos;Binaural Date&apos; arıyorum.&quot;
           </Text>
-          <TouchableOpacity className="bg-tingle-primary w-full py-3 rounded-xl items-center">
-            <Text className="text-white font-bold tracking-wide">Dinle</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
-      {/* Sound Wall (Keşfet) */}
-      <Text className="text-gray-400 text-sm mb-4 tracking-wider uppercase font-medium">Sound Wall</Text>
-      <View className="flex-row flex-wrap justify-between">
-        {soundWallItems.map((item) => (
-          <View key={item.id} className="w-[48%] bg-tingle-card p-4 rounded-2xl mb-4">
-            <View className="flex-row justify-between items-start mb-2">
-              <View className="bg-tingle-accent p-2 rounded-full">
-                <Mic size={16} color="#ffffff" />
-              </View>
-              <Text className="text-gray-500 text-xs">{item.duration}</Text>
+          {showRecorder ? (
+            <WhisperRecorder receiverId={selectedProfile.id} onSent={() => setShowRecorder(false)} />
+          ) : (
+            <View className="flex-row w-full justify-between space-x-4">
+              <TouchableOpacity
+                className="flex-1 bg-tingle-accent py-4 rounded-xl items-center flex-row justify-center space-x-2"
+                onPress={() => setShowRecorder(true)}
+              >
+                <Mic size={20} color="white" />
+                <Text className="text-white font-medium ml-2">Ses At</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity className="flex-1 bg-tingle-primary py-4 rounded-xl items-center flex-row justify-center space-x-2">
+                <Heart size={20} color="white" />
+                <Text className="text-white font-medium ml-2">Eşleş</Text>
+              </TouchableOpacity>
             </View>
-            <Text className="text-white font-medium mb-1">{item.title}</Text>
-            <Text className="text-gray-500 text-xs">@{item.user}</Text>
-          </View>
-        ))}
-      </View>
-
-    </View>
-  </ScrollView>
-
-    {/* Profile Modal */ }
-<Modal
-  animationType="fade"
-  transparent={true}
-  visible={!!selectedProfile}
-  onRequestClose={() => setSelectedProfile(null)}
->
-  <BlurView intensity={90} tint="dark" className="flex-1 justify-center items-center p-6">
-    {selectedProfile && (
-      <View className="bg-tingle-card w-full rounded-3xl p-8 items-center shadow-2xl relative">
-        <TouchableOpacity
-          className="absolute top-4 right-4 bg-tingle-accent p-2 rounded-full"
-          onPress={() => setSelectedProfile(null)}
-        >
-          <Text className="text-white text-xs">✖</Text>
-        </TouchableOpacity>
-
-        <Image
-          source={{ uri: selectedProfile.avatarUrl }}
-          className="w-32 h-32 rounded-full mb-6 border-4 border-tingle-primary"
-        />
-        <Text className="text-2xl text-white font-bold mb-1">{selectedProfile.username}</Text>
-        <View className="flex-row items-center mb-6 space-x-2">
-          <Mic size={16} color="#a855f7" />
-          <Text className="text-tingle-primary text-sm ml-2">{selectedProfile.favTrigger} Lover</Text>
+          )}
         </View>
-
-        <Text className="text-gray-400 text-center mb-8 leading-relaxed">
-          &quot;{selectedProfile.favTrigger} sesiyle uyumayı seviyorum. Tingle&apos;da sessizce kitap okuyabileceğimiz bir &apos;Binaural Date&apos; arıyorum.&quot;
-        </Text>
-
-        {showRecorder ? (
-          <WhisperRecorder receiverId={selectedProfile.id} onSent={() => setShowRecorder(false)} />
-        ) : (
-          <View className="flex-row w-full justify-between space-x-4">
-            <TouchableOpacity
-              className="flex-1 bg-tingle-accent py-4 rounded-xl items-center flex-row justify-center space-x-2"
-              onPress={() => setShowRecorder(true)}
-            >
-              <Mic size={20} color="white" />
-              <Text className="text-white font-medium ml-2">Ses At</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="flex-1 bg-tingle-primary py-4 rounded-xl items-center flex-row justify-center space-x-2">
-              <Heart size={20} color="white" />
-              <Text className="text-white font-medium ml-2">Eşleş</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    )}
-  </BlurView>
-</Modal>
+      )}
+    </BlurView>
+  </Modal>
 
   </SafeAreaView >
 );
