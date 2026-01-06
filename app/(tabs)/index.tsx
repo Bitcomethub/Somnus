@@ -5,6 +5,7 @@ import WhisperRecorder from '@/components/WhisperRecorder';
 import VisualCalibrator from '@/components/VisualCalibrator';
 import SleepSyncScreen from '@/components/SleepSyncScreen';
 import ShieldSelector, { ShieldMode } from '@/components/ShieldSelector';
+import SplashScreen from '@/components/SplashScreen';
 import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming, useSharedValue } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
 import io from 'socket.io-client';
@@ -140,6 +141,10 @@ useEffect(() => {
   fetchUsers();
 }, []);
 
+if (showSplash) {
+  return <SplashScreen onFinish={() => setShowSplash(false)} />;
+}
+
 const pulseScale = useSharedValue(1);
 useEffect(() => {
   pulseScale.value = withRepeat(
@@ -173,10 +178,15 @@ return (
             style={{ width: 140, height: 60, resizeMode: 'contain' }}
           />
 
-          <TouchableOpacity className="bg-tingle-card p-2 rounded-full">
-            <Headphones color="#a855f7" size={24} />
-          </TouchableOpacity>
-        </TouchableOpacity>
+          <View className="flex-row items-center space-x-2">
+            <View className="bg-tingle-card px-3 py-1 rounded-full flex-row items-center border border-orange-500/30">
+              <Text className="text-orange-500 font-bold mr-1">🔥 {emberBalance}</Text>
+            </View>
+            <TouchableOpacity className="bg-tingle-card p-2 rounded-full">
+              <Headphones color="#a855f7" size={24} />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       {/* Sensory Shield Selector */}

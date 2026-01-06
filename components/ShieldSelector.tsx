@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { Train, Briefcase, Trees, Cloud, Zap } from 'lucide-react-native';
+import { Train, Briefcase, Trees, Cloud, Zap, Flame } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 
 export type ShieldMode = 'commuter' | 'office' | 'nomad' | 'sky' | null;
 
 const SHIELDS = [
-    { id: 'commuter', label: 'Commuter', icon: Train, color: '#f59e0b', slogan: 'Rayların Ritmi' },
-    { id: 'office', label: 'Office', icon: Briefcase, color: '#3b82f6', slogan: 'Derin Odak' },
-    { id: 'nomad', label: 'Nomad', icon: Trees, color: '#10b981', slogan: 'Şehir Ormanı' },
-    { id: 'sky', label: 'Sky', icon: Cloud, color: '#0ea5e9', slogan: 'Bulutların Üstü' },
+    { id: 'commuter', label: 'Midnight Train', icon: Train, color: '#f59e0b', slogan: 'Rayların Ritmi', cost: 0 },
+    { id: 'office', label: 'Deep Work', icon: Briefcase, color: '#3b82f6', slogan: 'Maksimum Odak (2 🔥)', cost: 2 },
+    { id: 'nomad', label: 'Forest Cabin', icon: Trees, color: '#10b981', slogan: 'Doğal İzolasyon', cost: 0 },
+    { id: 'sky', label: 'Private Jet', icon: Cloud, color: '#0ea5e9', slogan: 'Bulutların Üstü (5 🔥)', cost: 5 },
 ];
 
 interface Props {
