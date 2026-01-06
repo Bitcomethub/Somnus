@@ -114,6 +114,20 @@ app.post('/block-user', async (req, res) => {
     }
 });
 
+// Ember System 🔥
+app.post('/burn-ember', async (req, res) => {
+    const { userId, cost } = req.body;
+    try {
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: { emberBalance: { decrement: cost } }
+        });
+        res.json({ success: true, newBalance: user.emberBalance });
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to burn ember' });
+    }
+});
+
 // Sleep-Sync Engine (Socket.io) 🛌
 const activeRooms: Record<string, NodeJS.Timeout> = {};
 

@@ -30,9 +30,9 @@ model User {
 model ListeningSession {
   id        Int      @id @default(autoincrement())
   userId    Int
-  trigger   String
-  duration  Int      // Seconds
-  createdAt DateTime @default(now())
+  currentVibe     String?  // 'Studying', 'Sleepy', etc.
+  emberBalance    Int      @default(10) // Hearth Currency 🔥
+  createdAt       DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id])
 }
