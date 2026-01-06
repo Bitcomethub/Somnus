@@ -75,9 +75,8 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
     const handlePanic = () => {
         // Immediate Block & Leave
         setStatus("BLOCKING...");
-        // Mock API Call
-        // axios.post(`${ API_URL }/block-user`, { roomId });
-setTimeout(() => {
+        
+        setTimeout(() => {
     if (socket.current) socket.current.disconnect();
     onClose();
 }, 500);
