@@ -17,6 +17,8 @@ model User {
   currentVibe      String?
   emberBalance     Int      @default(10) // Hearth Currency 🔥
   sensoryTolerance Int      @default(5) // 1-10 Scale (1: Whisper only, 10: Loud storms)
+  totalFocusMinutes Int     @default(0) // Leveling System ⭐️
+  vibeEmbedding    Float[]  // Semantic Vector Profile (OpenAI Embeddings) 🧠
   createdAt DateTime @default(now())
 
   sentWhispers    Whisper[] @relation("Sender")
