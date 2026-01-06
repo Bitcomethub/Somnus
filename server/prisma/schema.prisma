@@ -1,11 +1,13 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 model User {
@@ -18,7 +20,7 @@ model User {
   emberBalance     Int      @default(10) // Hearth Currency 🔥
   sensoryTolerance Int      @default(5) // 1-10 Scale (1: Whisper only, 10: Loud storms)
   totalFocusMinutes Int     @default(0) // Leveling System ⭐️
-  vibeEmbedding    Float[]  // Semantic Vector Profile (OpenAI Embeddings) 🧠
+  vibeEmbedding    Unsupported("vector(1536)")?  // Semantic Vector Profile (OpenAI Embeddings) 🧠
   createdAt DateTime @default(now())
 
   sentWhispers    Whisper[] @relation("Sender")
