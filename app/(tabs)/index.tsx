@@ -16,6 +16,7 @@ import { Audio } from 'expo-av';
 import io from 'socket.io-client';
 import BreathingLight from '@/components/BreathingLight'; // Phase 14
 import MicroSurvey from '@/components/MicroSurvey'; // Phase 14
+import FrostedGlassReveal from '@/components/FrostedGlassReveal'; // Phase 14
 // import SoulSurvey from '@/components/SoulSurvey'; // Removed for Audio-First Pivot
 
 // Static profiles removed in favor of API
@@ -356,11 +357,17 @@ export default function HomeScreen() { // Ensure Component Declaration Exists if
               <Text className="text-white text-xs">✖</Text>
             </TouchableOpacity>
 
-            <Image
-              source={{ uri: selectedProfile.avatarUrl }}
-              className="w-32 h-32 rounded-full mb-6 border-4 border-tingle-primary"
-              blurRadius={20} // Phase 14: Always start blurred
-            />
+            {/* Phase 14: Cinematic Slow Reveal 🎥 */}
+            <View className="mb-6 w-32 h-32 rounded-full overflow-hidden border-4 border-tingle-primary/50 relative">
+              <FrostedGlassReveal revealProgress={revealedProfiles.has(selectedProfile.id) ? 1 : 0}>
+                <Image
+                  source={{ uri: selectedProfile.avatarUrl }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              </FrostedGlassReveal>
+            </View>
+
             <Text className="text-2xl text-white font-bold mb-1">{selectedProfile.username}</Text>
             <View className="flex-row items-center mb-6 space-x-2">
               <Mic size={16} color="#a855f7" />
@@ -371,10 +378,10 @@ export default function HomeScreen() { // Ensure Component Declaration Exists if
               &quot;{selectedProfile.favTrigger} sesiyle uyumayı seviyorum. Tingle&apos;da sessizce kitap okuyabileceğimiz bir &apos;Binaural Date&apos; arıyorum.&quot;
             </Text>
 
-            {/* Phase 14: Wingman Whisper Placeholder */}
+            {/* Wingman */}
             <View className="bg-white/5 p-3 rounded-lg mb-6 w-full border border-white/5">
               <Text className="text-purple-400 text-xs font-bold mb-1 uppercase">Somnus Wingman 🧚‍♂️</Text>
-              <Text className="text-gray-300 italic text-xs">&quot;İkiniz de yağmurlu kütüphaneleri seviyorsunuz...&quot;</Text>
+              <Text className="text-gray-300 italic text-xs">&quot;O da şu an {selectedProfile.favTrigger} dinliyor. 'En sevdiğin kitap?' diye sorabilirsin.&quot;</Text>
             </View>
 
             {showRecorder ? (
@@ -389,9 +396,16 @@ export default function HomeScreen() { // Ensure Component Declaration Exists if
                   <Text className="text-white font-medium ml-2">Ses At</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity className="flex-1 bg-tingle-primary py-4 rounded-xl items-center flex-row justify-center space-x-2">
-                  <Heart size={20} color="white" />
-                  <Text className="text-white font-medium ml-2">Eşleş</Text>
+                <TouchableOpacity
+                  className="flex-1 bg-tingle-primary py-4 rounded-xl items-center flex-row justify-center space-x-2"
+                  onPress={() => {
+                    // Demo: Trigger Reveal Animation
+                    setRevealedProfiles(prev => new Set(prev).add(selectedProfile.id));
+                    alert("Reveal Başladı! 🧊🔥");
+                  }}
+                >
+                  <Sparkles size={20} color="white" />
+                  <Text className="text-white font-medium ml-2">Reveal</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -399,18 +413,6 @@ export default function HomeScreen() { // Ensure Component Declaration Exists if
         )}
       </BlurView>
     </Modal>
-
-    {/* Phase 14: Soul Survey Onboarding */ }
-    <SoulSurvey
-      visible={showSurvey}
-      onComplete={(data) => {
-        console.log("Survey Data:", data);
-        // TODO: Save to backend via axios
-        setShowSurvey(false);
-        alert("Ruh Profilin Oluşturuldu! 🧬");
-      }}
-    />
-
   </SafeAreaView >
 );
 }
