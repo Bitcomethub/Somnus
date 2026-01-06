@@ -42,6 +42,7 @@ export default function HomeScreen() { // Ensure Component Declaration Exists if
   // Shield State
   const [activeShield, setActiveShield] = useState<ShieldMode>(null);
   const [shieldCounts, setShieldCounts] = useState<Record<string, number>>({});
+  const [showMicroSurvey, setShowMicroSurvey] = useState(false); // Phase 14
   const shieldSocket = useRef<any>(null);
   const shieldSound = useRef<Audio.Sound | null>(null);
 
