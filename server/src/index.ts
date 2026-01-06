@@ -1,5 +1,30 @@
 import 'dotenv/config'; // Enforce early loading
 
+import fs from 'fs';
+import path from 'path';
+
+// MANUAL ENV LOADER (Process.env fallback)
+const loadEnvManually = () => {
+    try {
+        const envPath = path.resolve(__dirname, '../.env');
+        if (fs.existsSync(envPath)) {
+            const envConfig = fs.readFileSync(envPath, 'utf-8');
+            envConfig.split('\n').forEach((line) => {
+                const [key, value] = line.split('=');
+                if (key && value && !process.env[key.trim()]) {
+                    process.env[key.trim()] = value.trim().replace(/^["']|["']$/g, ''); // Remove quotes
+                }
+            });
+            console.log("✅ Manual .env loaded. DATABASE_URL:", !!process.env.DATABASE_URL);
+        } else {
+            console.warn("⚠️ .env file not found manually at:", envPath);
+        }
+    } catch (e) {
+        console.error("❌ Manual .env load error:", e);
+    }
+};
+loadEnvManually();
+
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
