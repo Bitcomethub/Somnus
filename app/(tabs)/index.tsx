@@ -220,8 +220,9 @@ export default function HomeScreen() {
       <VideoBackground
         source={activeShield ? SHIELD_VIDEOS[activeShield] : null}
         isActive={!!activeShield}
+        mode={activeShield || 'default'}
       />
-      <BreathingLight isActive={!!activeShield} color="#a855f7" bpm={12} />
+      <BreathingLight isActive={!!activeShield} mode={activeShield || 'default'} bpm={12} />
 
       {/* Overlays */}
       <SleepSyncScreen visible={showSleepMode} onClose={() => setShowSleepMode(false)} />
