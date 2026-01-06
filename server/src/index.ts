@@ -1,9 +1,4 @@
-import path from 'path';
-import dotenv from 'dotenv';
-
-// Load environment variables (Robust for both Dev & Prod)
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-dotenv.config();
+import 'dotenv/config'; // Enforce early loading
 
 import express from 'express';
 import cors from 'cors';
