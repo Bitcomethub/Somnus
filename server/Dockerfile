@@ -6,6 +6,7 @@ COPY server/package.json server/package-lock.json ./
 RUN npm install
 
 COPY server/prisma ./prisma/
+COPY server/prisma.config.ts ./
 COPY server/tsconfig.json ./
 COPY server/src ./src/
 
