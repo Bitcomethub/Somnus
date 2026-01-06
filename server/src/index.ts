@@ -285,6 +285,40 @@ app.post('/wingman-whisper', async (req, res) => {
     }
 });
 
+// Frequency Match (Vector Search) 📡
+app.post('/frequency-check', async (req, res) => {
+    const { userId, userVector } = req.body; // userVector is float[]
+    try {
+        if (!userVector) return res.status(400).json({ error: "Vector required" });
+
+        // Raw SQL for Cosine Similarity
+        // 1 - (A <=> B) gives similarity (where <=> is cosine distance)
+        const THRESHOLD = 0.82;
+
+        const matches = await prisma.$queryRawUnsafe(`
+            SELECT id, username, "currentVibe", "favTrigger", 
+            1 - ("vibeEmbedding" <=> $1::vector) as similarity
+            FROM "User"
+            WHERE id != $2
+            AND "vibeEmbedding" IS NOT NULL
+            AND 1 - ("vibeEmbedding" <=> $1::vector) > $3
+            ORDER BY similarity DESC
+            LIMIT 1;
+        `, userVector, userId, THRESHOLD);
+
+        const bestMatch = Array.isArray(matches) ? matches[0] : null;
+
+        if (bestMatch) {
+            res.json({ match: true, user: bestMatch });
+        } else {
+            res.json({ match: false });
+        }
+    } catch (e) {
+        console.error("Vector Search Error:", e);
+        res.json({ match: false, error: "Frequency alignment failed" });
+    }
+});
+
 httpServer.listen(PORT, async () => {
     try {
         await prisma.$executeRawUnsafe('CREATE EXTENSION IF NOT EXISTS vector;');

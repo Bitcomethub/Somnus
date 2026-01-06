@@ -1,50 +1,126 @@
-# Welcome to your Expo app 👋
+# Somnus: Digital Life Architect & Sensory Sanctuary 🌑🎧
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> **Philosophy:** "Audio-First, Social-Later."
+> **Mission:** To connect "niche souls" through shared sensory experiences, moving from isolation to connection via a "Low Friction, High Discovery" model.
 
-## Get started
+---
 
-1. Install dependencies
+## 🏗 System Architecture (The 5 Layers)
 
-   ```bash
-   npm install
-   ```
+Somnus is built on a 5-layer "Engagement Pyramid".
 
-2. Start the app
+### 1. Layer: "Zero-Look" Shield (Instant Gratification)
 
-   ```bash
-   npx expo start
-   ```
+*The user instanty achieves isolation without looking at the screen.*
 
-In the output, you'll find options to open the app in a
+* **Audio-First Entry:** App launches directly into the last used "Shield" (e.g., Midnight Train). No menus, no silence.
+* **Tech:** `expo-av` with `Sound` objects.
+* **Layered Mixer:**
+  * **Base:** Shield Ambience (Brown Noise, Rain - Looping).
+  * **Trigger:** Specific ASMR Asset (Vacuum, Fan - Looping).
+  * **Interaction:** Voice Chat / Whisper (Overlay).
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 2. Layer: Visual Sanctuary (Atmosphere)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+*The environment feels alive and premium.*
 
-## Get a fresh project
+* **Cinematic Loops:** 4K video backgrounds (Cloud Rain, Subway Window) via `expo-av` Video component.
+* **Breathing UI:** `BreathingLight.tsx` (Reanimated) pulses the screen edge/glow in sync with audio BPM (simulated).
+* **Dynamic Assets:** Asset library managed in `SoundManager` and `VideoBackground` components.
 
-When you're ready, run:
+### 3. Layer: Intelligent Matchmaking (The Brain) 🧠
 
-```bash
-npm run reset-project
-```
+*Understanding the user without boring forms.*
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+* **Passive Onboarding:** `MicroSurvey.tsx` (The Cute Bubble). Minimalist, timed questions ("Does this rain make you nostalgic?").
+* **Vector Memory:**
+  * **DB:** PostgreSQL with `pgvector` extension.
+  * **Schema:** `User` model includes `vibeEmbedding` (Unsupported("vector(1536)")).
+  * **Logic:** User preferences + Audio choices -> OpenAI Embeddings -> Vector Store.
+* **Frequency Match:**
+  * **Endpoint:** `POST /frequency-check`.
+  * **Algo:** Cosine Similarity calculation. If > 0.85, finding a "Vibe Twin" triggers a notification.
 
-## Learn more
+### 4. Layer: Social Partnership (The Slow Reveal)
 
-To learn more about developing your project with Expo, look at the following resources:
+*From anonymity to intimacy.*
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+* **Private Rooms:** Socket.io powered rooms (`join_shield_room`, `join_private_room`).
+* **Wingman Service:**
+  * **Service:** `server/src/services/wingman.ts`.
+  * **AI:** GPT-4o generates "Icebreaker Whispers" based on context (Shield + Time + Shared Interest).
+* **Cinematic Reveal (Blur-to-Clear):**
+  * **Component:** `FrostedGlassReveal.tsx`.
+  * **Visual:** Starts at 95% Blur + Frost Overlay.
+  * **Mechanic:** Time spent or Embers burnt reduces blur radius and melts frost.
+  * **Tech:** `react-native-reanimated` interpolations.
 
-## Join the community
+### 5. Layer: Hearth Economy (Ember System) 🔥
 
-Join our community of developers creating universal apps.
+*Monetization driven by value and magic.*
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+* **Currency:** Ember (🔥).
+* **Spends:**
+  * **Reveal Boost:** Melt the ice faster.
+  * **Dreamscape:** Generate custom AI backgrounds (DALL-E 3).
+  * **Gift**: Send a "Warmth" signal.
+* **Infrastructure:** RevenueCat integration for IAP.
+
+---
+
+## 🛠 Tech Stack Details
+
+### Client (Mobile)
+
+* **Framework:** React Native (Expo SDK 50+).
+* **Language:** TypeScript.
+* **Styling:** NativeWind (TailwindCSS).
+* **Animation:** `react-native-reanimated` (Crucial for Reveal & Breathing).
+* **Audio/Video:** `expo-av`.
+* **Blur:** `expo-blur`.
+
+### Server (Backend)
+
+* **Runtime:** Node.js (Express).
+* **DB:** PostgreSQL (Railway) with `pgvector` enabled.
+* **ORM:** Prisma (modified for vector support).
+* **Real-time:** Socket.io (Rooms, Presence, Sync).
+* **AI:** OpenAI Node SDK (GPT-4o, DALL-E 3, Embeddings).
+
+---
+
+## 🔌 Key Endpoints (Source of Truth)
+
+### Auth & User
+
+* `GET /users` - List active profiles.
+* `PUT /user/:id` - Update preferences (passive survey data).
+
+### Match & Social
+
+* `POST /match-score` - Classic algorithm (Trigger + Tolerance).
+* `POST /frequency-check` - **Vector** similarity search.
+* `POST /wingman-whisper` - AI Contextual Icebreaker generation.
+* `POST /reveal-user` - Secure fetch of clear avatar URL.
+* `GET /reveal-match/:id` - Specific detailed reveal.
+
+### Economy
+
+* `POST /burn-ember` - Transaction logging.
+
+### AI Magic
+
+* `POST /vibe-check` - Sentiment analysis -> Shield recommendation.
+* `POST /generate-shield` - DALL-E 3 background generation.
+
+---
+
+## 🚀 Deployment Status
+
+* **Backend:** Live on Railway.
+* **Database:** Migrated & Seeded.
+* **Frontend:** Local Expo Go (Ready for EAS Build).
+
+---
+
+*"We build the silence so they can find the sound."* - Somnus Manifesto

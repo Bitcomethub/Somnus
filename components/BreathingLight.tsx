@@ -15,12 +15,17 @@ export default function BreathingLight({ isActive, color = '#a855f7', bpm = 12 }
 
     useEffect(() => {
         if (isActive) {
-            // Breathing Rhythm: 60/12 = 5 seconds per cycle
-            // Inhale (Fade In) -> Exhale (Fade Out)
+            // "Organic" Breath: Inhale (3s) -> Hold (0.5s) -> Exhale (4s) -> Hold (1s)
+            // Using a sequence to break the mechanical sine wave feel
             opacity.value = withRepeat(
-                withTiming(0.15, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+                withSequence(
+                    withTiming(0.2, { duration: 3000, easing: Easing.out(Easing.quad) }), // Inhale
+                    withTiming(0.2, { duration: 500 }), // Hold Breath
+                    withTiming(0.05, { duration: 4000, easing: Easing.in(Easing.quad) }), // Exhale
+                    withTiming(0.05, { duration: 1000 }) // Empty Lungs
+                ),
                 -1, // Infinite
-                true // Reverse (Auto-inhale/exhale)
+                false
             );
         } else {
             opacity.value = withTiming(0, { duration: 1000 });
