@@ -21,6 +21,11 @@ model User {
   sensoryTolerance Int      @default(5) // 1-10 Scale (1: Whisper only, 10: Loud storms)
   totalFocusMinutes Int     @default(0) // Leveling System ⭐️
   vibeEmbedding    Unsupported("vector(1536)")?  // Semantic Vector Profile (OpenAI Embeddings) 🧠
+  
+  // Phase 14: Social Sanctuary
+  datingPrefs      String[] // e.g. ["Deep Talk", "Silence", "Chill"]
+  sensorySafeSpace String?  // e.g. "Rainy Library"
+  
   createdAt DateTime @default(now())
 
   sentWhispers    Whisper[] @relation("Sender")
