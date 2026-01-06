@@ -23,7 +23,16 @@ app.get('/', (req, res) => {
 // Users
 app.get('/users', async (req, res) => {
     try {
-        const users = await prisma.user.findMany();
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                username: true,
+                favTrigger: true,
+                // avatarUrl: false // HIDDEN for Privacy (Whisper-to-Reveal)
+                currentVibe: true,
+                triggerInventory: true
+            }
+        });
         res.json(users);
     } catch (e) {
         res.status(500).json({ error: 'Failed to fetch users' });

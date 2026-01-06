@@ -24,10 +24,20 @@ const [showSleepMode, setShowSleepMode] = useState(false);
 const [profiles, setProfiles] = useState<any[]>([]);
 const [revealedProfiles, setRevealedProfiles] = useState<Set<number>>(new Set());
 
-const handleReveal = (profileId: number) => {
-  // Simulate listening to whisper -> Reveal
-  setRevealedProfiles(prev => new Set(prev).add(profileId));
-  setShowRecorder(true);
+const handleReveal = async (profileId: number) => {
+  try {
+    // Secure Reveal: Fetch the real URL from backend
+    const res = await axios.post(`${API_URL}/reveal-user`, { userId: profileId });
+    if (res.data.avatarUrl) {
+      setProfiles(prev => prev.map(p =>
+        p.id === profileId ? { ...p, avatarUrl: res.data.avatarUrl } : p
+      ));
+      setRevealedProfiles(prev => new Set(prev).add(profileId));
+      setShowRecorder(true);
+    }
+  } catch (e) {
+    console.log("Reveal failed", e);
+  }
 };
 
 useEffect(() => {
