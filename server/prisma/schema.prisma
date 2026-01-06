@@ -28,6 +28,7 @@ model User {
   sessions ListeningSession[]
 }
 
+model ListeningSession {
   id        Int      @id @default(autoincrement())
   userId    Int
   trigger   String
