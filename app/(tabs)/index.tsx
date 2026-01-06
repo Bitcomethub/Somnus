@@ -355,93 +355,86 @@ export default function HomeScreen() { // Ensure Component Declaration Exists if
             ))}
           </View>
 
-        </View>
-      </ScrollView>
-
-    {/* Phase 14: Passive Micro Survey */ }
-    <MicroSurvey
-      visible={showMicroSurvey}
-      question="Bu yağmur sesi seni çocukluğuna mı götürüyor? 🍼"
-      onAnswer={(ans) => {
-        setShowMicroSurvey(false);
-        alert(`Somnus AI: Not edildi (${ans}). Frekansına uygun birini bulduğumda haber vereceğim. ✨`);
-      }}
-      onDismiss={() => setShowMicroSurvey(false)}
+          onAnswer={(ans) => {
+            setShowMicroSurvey(false);
+            alert(`Somnus AI: Not edildi (${ans}). Frekansına uygun birini bulduğumda haber vereceğim. ✨`);
+          }}
+          onDismiss={() => setShowMicroSurvey(false)}
     />
 
-    {/* Profile Modal */ }
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={!!selectedProfile}
-      onRequestClose={() => setSelectedProfile(null)}
-    >
-      <BlurView intensity={90} tint="dark" className="flex-1 justify-center items-center p-6">
-        {selectedProfile && (
-          <View className="bg-tingle-card w-full rounded-3xl p-8 items-center shadow-2xl relative">
-            <TouchableOpacity
-              className="absolute top-4 right-4 bg-tingle-accent p-2 rounded-full"
-              onPress={() => setSelectedProfile(null)}
-            >
-              <Text className="text-white text-xs">✖</Text>
-            </TouchableOpacity>
+          {/* Profile Modal */}
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={!!selectedProfile}
+            onRequestClose={() => setSelectedProfile(null)}
+          >
+            <BlurView intensity={90} tint="dark" className="flex-1 justify-center items-center p-6">
+              {selectedProfile && (
+                <View className="bg-tingle-card w-full rounded-3xl p-8 items-center shadow-2xl relative">
+                  <TouchableOpacity
+                    className="absolute top-4 right-4 bg-tingle-accent p-2 rounded-full"
+                    onPress={() => setSelectedProfile(null)}
+                  >
+                    <Text className="text-white text-xs">✖</Text>
+                  </TouchableOpacity>
 
-            {/* Phase 14: Cinematic Slow Reveal 🎥 */}
-            <View className="mb-6 w-32 h-32 rounded-full overflow-hidden border-4 border-tingle-primary/50 relative">
-              <FrostedGlassReveal revealProgress={revealedProfiles.has(selectedProfile.id) ? 1 : 0}>
-                <Image
-                  source={{ uri: selectedProfile.avatarUrl }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-              </FrostedGlassReveal>
-            </View>
+                  {/* Phase 14: Cinematic Slow Reveal 🎥 */}
+                  <View className="mb-6 w-32 h-32 rounded-full overflow-hidden border-4 border-tingle-primary/50 relative">
+                    <FrostedGlassReveal revealProgress={revealedProfiles.has(selectedProfile.id) ? 1 : 0}>
+                      <Image
+                        source={{ uri: selectedProfile.avatarUrl }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    </FrostedGlassReveal>
+                  </View>
 
-            <Text className="text-2xl text-white font-bold mb-1">{selectedProfile.username}</Text>
-            <View className="flex-row items-center mb-6 space-x-2">
-              <Mic size={16} color="#a855f7" />
-              <Text className="text-tingle-primary text-sm ml-2">{selectedProfile.favTrigger} Lover</Text>
-            </View>
+                  <Text className="text-2xl text-white font-bold mb-1">{selectedProfile.username}</Text>
+                  <View className="flex-row items-center mb-6 space-x-2">
+                    <Mic size={16} color="#a855f7" />
+                    <Text className="text-tingle-primary text-sm ml-2">{selectedProfile.favTrigger} Lover</Text>
+                  </View>
 
-            <Text className="text-gray-400 text-center mb-8 leading-relaxed">
-              &quot;{selectedProfile.favTrigger} sesiyle uyumayı seviyorum. Tingle&apos;da sessizce kitap okuyabileceğimiz bir &apos;Binaural Date&apos; arıyorum.&quot;
-            </Text>
+                  <Text className="text-gray-400 text-center mb-8 leading-relaxed">
+                    &quot;{selectedProfile.favTrigger} sesiyle uyumayı seviyorum. Tingle&apos;da sessizce kitap okuyabileceğimiz bir &apos;Binaural Date&apos; arıyorum.&quot;
+                  </Text>
 
-            {/* Wingman */}
-            <View className="bg-white/5 p-3 rounded-lg mb-6 w-full border border-white/5">
-              <Text className="text-purple-400 text-xs font-bold mb-1 uppercase">Somnus Wingman 🧚‍♂️</Text>
-              <Text className="text-gray-300 italic text-xs">&quot;O da şu an {selectedProfile.favTrigger} dinliyor. 'En sevdiğin kitap?' diye sorabilirsin.&quot;</Text>
-            </View>
+                  {/* Wingman */}
+                  <View className="bg-white/5 p-3 rounded-lg mb-6 w-full border border-white/5">
+                    <Text className="text-purple-400 text-xs font-bold mb-1 uppercase">Somnus Wingman 🧚‍♂️</Text>
+                    <Text className="text-gray-300 italic text-xs">&quot;O da şu an {selectedProfile.favTrigger} dinliyor. 'En sevdiğin kitap?' diye sorabilirsin.&quot;</Text>
+                  </View>
 
-            {showRecorder ? (
-              <WhisperRecorder receiverId={selectedProfile.id} onSent={() => setShowRecorder(false)} />
-            ) : (
-              <View className="flex-row w-full justify-between space-x-4">
-                <TouchableOpacity
-                  className="flex-1 bg-tingle-accent py-4 rounded-xl items-center flex-row justify-center space-x-2"
-                  onPress={() => setShowRecorder(true)}
-                >
-                  <Mic size={20} color="white" />
-                  <Text className="text-white font-medium ml-2">Ses At</Text>
-                </TouchableOpacity>
+                  {showRecorder ? (
+                    <WhisperRecorder receiverId={selectedProfile.id} onSent={() => setShowRecorder(false)} />
+                  ) : (
+                    <View className="flex-row w-full justify-between space-x-4">
+                      <TouchableOpacity
+                        className="flex-1 bg-tingle-accent py-4 rounded-xl items-center flex-row justify-center space-x-2"
+                        onPress={() => setShowRecorder(true)}
+                      >
+                        <Mic size={20} color="white" />
+                        <Text className="text-white font-medium ml-2">Ses At</Text>
+                      </TouchableOpacity>
 
-                <TouchableOpacity
-                  className="flex-1 bg-tingle-primary py-4 rounded-xl items-center flex-row justify-center space-x-2"
-                  onPress={() => {
-                    // Demo: Trigger Reveal Animation
-                    setRevealedProfiles(prev => new Set(prev).add(selectedProfile.id));
-                    alert("Reveal Başladı! 🧊🔥");
-                  }}
-                >
-                  <Sparkles size={20} color="white" />
-                  <Text className="text-white font-medium ml-2">Reveal</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        )}
-      </BlurView>
-    </Modal>
-  </SafeAreaView >
-);
-}
+                      <TouchableOpacity
+                        className="flex-1 bg-tingle-primary py-4 rounded-xl items-center flex-row justify-center space-x-2"
+                        onPress={() => {
+                          // Demo: Trigger Reveal Animation
+                          setRevealedProfiles(prev => new Set(prev).add(selectedProfile.id));
+                          alert("Reveal Başladı! 🧊🔥");
+                        }}
+                      >
+                        <Sparkles size={20} color="white" />
+                        <Text className="text-white font-medium ml-2">Reveal</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
+            </BlurView>
+          </Modal>
+      </SafeAreaView >
+    );
+  }
