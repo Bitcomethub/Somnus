@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Train, Briefcase, Trees, Cloud } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 export type ShieldMode = 'commuter' | 'office' | 'nomad' | 'sky' | null;
@@ -104,7 +105,13 @@ export default function ShieldSelector({ activeMode, onSelect, counts }: Props) 
                         key={item.id}
                         item={item}
                         isActive={activeMode === item.id}
-                        onPress={() => onSelect(activeMode === item.id ? null : item.id as ShieldMode)}
+                        onPress={() => {
+                            // Haptic feedback on selection
+                            if (Platform.OS === 'ios') {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            }
+                            onSelect(activeMode === item.id ? null : item.id as ShieldMode);
+                        }}
                         count={counts[item.id] || 0}
                     />
                 ))}

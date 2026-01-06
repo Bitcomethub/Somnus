@@ -19,6 +19,8 @@ import BreathingLight from '@/components/BreathingLight';
 import MicroSurvey from '@/components/MicroSurvey';
 import FrostedGlassReveal from '@/components/FrostedGlassReveal';
 import VideoBackground from '@/components/VideoBackground';
+import SleepTimer from '@/components/SleepTimer';
+import GhostModePanel from '@/components/GhostModePanel';
 
 // --- Constants ---
 const SHIELD_SOUNDS: Record<string, any> = {
@@ -63,6 +65,11 @@ export default function HomeScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showMicroSurvey, setShowMicroSurvey] = useState(false);
 
+  // Final Touch: Sleep Timer & Ghost Mode
+  const [showSleepTimer, setShowSleepTimer] = useState(false);
+  const [showGhostPanel, setShowGhostPanel] = useState(false);
+  const [isGhostMode, setIsGhostMode] = useState(false);
+
   // --- Pulse Animation ---
   const pulseScale = useSharedValue(1);
   const pulseStyle = useAnimatedStyle(() => ({
@@ -87,20 +94,48 @@ export default function HomeScreen() {
       shieldSocket.current.emit('join_shield_room', mode);
     }
 
-    // 2. Audio Logic
-    if (shieldSound.current) {
-      await shieldSound.current.unloadAsync();
+    // 2. Audio Cross-Fade Logic
+    const oldSound = shieldSound.current;
+
+    // Start new sound first (for cross-fade effect)
+    if (mode && SHIELD_SOUNDS[mode]) {
+      try {
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          SHIELD_SOUNDS[mode],
+          { shouldPlay: true, isLooping: true, volume: 0 } // Start silent
+        );
+        shieldSound.current = newSound;
+
+        // Fade-in new sound over 1.5 seconds
+        const fadeIn = async () => {
+          for (let vol = 0; vol <= 0.8; vol += 0.1) {
+            await newSound.setVolumeAsync(vol);
+            await new Promise(r => setTimeout(r, 150));
+          }
+        };
+        fadeIn();
+      } catch (e) { console.log('Shield Audio Error', e); }
+    } else {
       shieldSound.current = null;
     }
 
-    if (mode && SHIELD_SOUNDS[mode]) {
-      try {
-        const { sound } = await Audio.Sound.createAsync(
-          SHIELD_SOUNDS[mode],
-          { shouldPlay: true, isLooping: true, volume: 0.8 }
-        );
-        shieldSound.current = sound;
-      } catch (e) { console.log('Shield Audio Error', e); }
+    // Fade-out old sound over 1 second
+    if (oldSound) {
+      const fadeOut = async () => {
+        try {
+          const status = await oldSound.getStatusAsync();
+          if (status.isLoaded) {
+            let vol = status.volume || 0.8;
+            while (vol > 0) {
+              vol = Math.max(0, vol - 0.1);
+              await oldSound.setVolumeAsync(vol);
+              await new Promise(r => setTimeout(r, 100));
+            }
+            await oldSound.unloadAsync();
+          }
+        } catch (e) { /* Sound already unloaded */ }
+      };
+      fadeOut();
     }
   };
 
@@ -233,6 +268,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View className="px-6 pt-6 pb-4">
           <View className="flex-row justify-between items-center mb-6">
+            {/* Sleep Mode Button */}
             <TouchableOpacity onPress={() => setShowSleepMode(true)} className="bg-tingle-card p-2 rounded-full mr-2">
               <Moon color="#8B5CF6" size={24} />
             </TouchableOpacity>
@@ -243,11 +279,26 @@ export default function HomeScreen() {
             />
 
             <View className="flex-row items-center space-x-2">
+              {/* Ghost Mode Indicator */}
+              {isGhostMode && (
+                <View className="bg-purple-900/50 px-2 py-1 rounded-full">
+                  <Text className="text-purple-400 text-xs">👻</Text>
+                </View>
+              )}
+
+              {/* Ember Balance */}
               <View className="bg-tingle-card px-3 py-1 rounded-full flex-row items-center border border-orange-500/30">
                 <Text className="text-orange-500 font-bold mr-1">🔥 {emberBalance}</Text>
               </View>
-              <TouchableOpacity className="bg-tingle-card p-2 rounded-full">
-                <Headphones color="#a855f7" size={24} />
+
+              {/* Sleep Timer Button */}
+              <TouchableOpacity onPress={() => setShowSleepTimer(true)} className="bg-tingle-card p-2 rounded-full">
+                <Moon color="#fbbf24" size={20} />
+              </TouchableOpacity>
+
+              {/* Ghost Mode Button */}
+              <TouchableOpacity onPress={() => setShowGhostPanel(true)} className="bg-tingle-card p-2 rounded-full">
+                <Headphones color={isGhostMode ? "#a855f7" : "#64748b"} size={24} />
               </TouchableOpacity>
             </View>
           </View>
@@ -383,6 +434,22 @@ export default function HomeScreen() {
           alert(`Somnus AI: Not edildi (${ans}). Frekansına uygun birini bulduğumda haber vereceğim. ✨`);
         }}
         onDismiss={() => setShowMicroSurvey(false)}
+      />
+
+      {/* Sleep Timer */}
+      <SleepTimer
+        visible={showSleepTimer}
+        onClose={() => setShowSleepTimer(false)}
+        onSleepStart={(durationMs) => console.log('Sleep started:', durationMs)}
+        currentSound={shieldSound.current}
+      />
+
+      {/* Ghost Mode Panel */}
+      <GhostModePanel
+        visible={showGhostPanel}
+        onClose={() => setShowGhostPanel(false)}
+        isGhostMode={isGhostMode}
+        onToggleGhost={setIsGhostMode}
       />
 
       {/* Profile Modal */}
