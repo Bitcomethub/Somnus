@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 app.get('/', (req, res) => {
-    res.send('Tingle API: Safe Haven Active 🌙');
+    res.send('Somnus API: Safe Haven Active 🌑');
 });
 
 // Users
