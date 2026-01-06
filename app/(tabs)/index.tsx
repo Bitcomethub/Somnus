@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Modal, TextInput, ActivityIndicator, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, Modal, TextInput, ActivityIndicator, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Wind, CloudRain, Zap, Mic, Heart, Headphones, Moon, Sparkles } from 'lucide-react-native';
 import axios from 'axios';
 import { Audio } from 'expo-av';

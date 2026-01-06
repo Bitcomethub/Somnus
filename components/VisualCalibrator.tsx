@@ -1,10 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
-    withSpring,
     withRepeat,
     withSequence,
     withTiming
@@ -12,29 +10,16 @@ import Animated, {
 
 const { width } = Dimensions.get('window');
 
+// Simplified Visual Calibrator - removes GestureDetector to avoid React errors
+// Just a decorative breathing light element
 export default function VisualCalibrator() {
-    const x = useSharedValue(width / 2);
-    const y = useSharedValue(100);
-    const scale = useSharedValue(1);
+    const opacity = useSharedValue(0.3);
 
-    const gesture = Gesture.Pan()
-        .onUpdate((e) => {
-            x.value = e.absoluteX;
-            y.value = e.absoluteY;
-        })
-        .onBegin(() => {
-            scale.value = withSpring(1.5);
-        })
-        .onFinalize(() => {
-            scale.value = withSpring(1);
-        });
-
-    // Breathing glow effect
     React.useEffect(() => {
-        scale.value = withRepeat(
+        opacity.value = withRepeat(
             withSequence(
-                withTiming(1.2, { duration: 2000 }),
-                withTiming(1, { duration: 2000 })
+                withTiming(0.6, { duration: 2000 }),
+                withTiming(0.3, { duration: 2000 })
             ),
             -1,
             true
@@ -42,46 +27,28 @@ export default function VisualCalibrator() {
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => ({
-        transform: [
-            { translateX: x.value - 40 }, // Center offset
-            { translateY: y.value - 40 },
-            { scale: scale.value }
-        ],
+        opacity: opacity.value,
     }));
 
-    return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-            <GestureDetector gesture={gesture}>
-                <Animated.View style={[styles.thumbLight, animatedStyle]}>
-                    <View style={styles.core} />
-                </Animated.View>
-            </GestureDetector>
-        </View>
-    );
+    // Disabled for now - was causing React internal errors
+    return null;
+
+    // Original decorative element (commented out for stability):
+    // return (
+    //     <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    //         <Animated.View style={[styles.thumbLight, animatedStyle]} />
+    //     </View>
+    // );
 }
 
 const styles = StyleSheet.create({
     thumbLight: {
         position: 'absolute',
+        top: 100,
+        left: width / 2 - 40,
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: 'rgba(139, 92, 246, 0.3)', // Soft Lavender Glow
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 20,
-    },
-    core: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: '#FFFFFF',
-        shadowColor: '#FFFFFF',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 10,
+        backgroundColor: 'rgba(139, 92, 246, 0.3)',
     },
 });
