@@ -265,6 +265,26 @@ io.on('connection', (socket) => {
 });
 
 
+// Social Wingman 🧚‍♂️
+app.post('/wingman-whisper', async (req, res) => {
+    const { userA_prefs, userB_prefs, current_shield } = req.body;
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                { role: "system", content: "You are Somnus Wingman. Function: Identify shared niche interests between two users and the current environment. Action: Whisper a single, gentle, poetic icebreaker sentence to start a deep conversation. Tone: Mystical, intimate, non-cringe. Max 20 words." },
+                { role: "user", content: `User A likes: ${userA_prefs}. User B likes: ${userB_prefs}. They are currently in: ${current_shield}.` }
+            ]
+        });
+
+        const whisper = response.choices[0].message.content;
+        res.json({ whisper });
+    } catch (e) {
+        console.error("Wingman Error:", e);
+        res.json({ whisper: "The silence here is comfortable, isn't it?" }); // Fallback
+    }
+});
+
 httpServer.listen(PORT, async () => {
     try {
         await prisma.$executeRawUnsafe('CREATE EXTENSION IF NOT EXISTS vector;');
