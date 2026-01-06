@@ -120,6 +120,37 @@ const activeRooms: Record<string, NodeJS.Timeout> = {};
 io.on('connection', (socket) => {
     console.log('User connected to Vibe Stream:', socket.id);
 
+    // --- SENSORY SHIELD LOGIC 🛡️ ---
+
+    socket.on('join_shield_room', (shieldMode) => {
+        const roomId = `shield_${shieldMode}`;
+        socket.join(roomId);
+
+        // Broadcast new count
+        const room = io.sockets.adapter.rooms.get(roomId);
+        const count = room ? room.size : 0;
+        io.to(roomId).emit('shield_count', { mode: shieldMode, count });
+
+        console.log(`Socket ${socket.id} joined Shield: ${shieldMode}. People: ${count}`);
+    });
+
+    socket.on('leave_shield_room', (shieldMode) => {
+        const roomId = `shield_${shieldMode}`;
+        socket.leave(roomId);
+
+        const room = io.sockets.adapter.rooms.get(roomId);
+        const count = room ? room.size : 0;
+        io.to(roomId).emit('shield_count', { mode: shieldMode, count });
+    });
+
+    socket.on('shield_heartbeat', ({ shieldMode }) => {
+        const roomId = `shield_${shieldMode}`;
+        // "Silent High-Five" - Broadcast to others that someone is present
+        // Throttle this on frontend, but here we just relay
+        socket.to(roomId).emit('shield_signal', { type: 'heartbeat' });
+    });
+
+    // --- SLEEP SYNC LOGIC 🛌 ---
     // Join a private sleep room
     socket.on('join_sleep_room', (roomId) => {
         socket.join(roomId);
