@@ -1,4 +1,16 @@
-import 'dotenv/config';
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Try loading from multiple possible locations
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config(); // fallback to default
+
+console.log("ENV CHECK:", {
+    PORT: process.env.PORT,
+    DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
+    PWD: process.cwd()
+});
+
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';

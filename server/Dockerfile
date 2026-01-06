@@ -10,7 +10,9 @@ RUN npm install
 
 COPY server/prisma ./prisma/
 COPY server/tsconfig.json ./
+# Hack to copy .env only if it exists
 COPY server/src ./src/
+COPY server/.env* ./
 
 RUN npx prisma generate
 RUN npm run build
