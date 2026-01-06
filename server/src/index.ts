@@ -264,6 +264,13 @@ io.on('connection', (socket) => {
     });
 });
 
-httpServer.listen(PORT, () => {
+
+httpServer.listen(PORT, async () => {
+    try {
+        await prisma.$executeRawUnsafe('CREATE EXTENSION IF NOT EXISTS vector;');
+        console.log('✅ pgvector extension enabled');
+    } catch (e) {
+        console.warn('⚠️ Failed to enable pgvector (might need superuser):', e);
+    }
     console.log(`Server running on port ${PORT}`);
 });
