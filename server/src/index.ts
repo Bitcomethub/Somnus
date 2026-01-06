@@ -169,7 +169,9 @@ app.post('/generate-shield', async (req, res) => {
             size: "1024x1024",
         });
 
-        const imageUrl = response.data[0].url;
+        const imageUrl = response.data?.[0]?.url;
+        if (!imageUrl) throw new Error("Image generation failed");
+
         res.json({ success: true, imageUrl });
     } catch (e) {
         console.error("DALL-E Error:", e);
