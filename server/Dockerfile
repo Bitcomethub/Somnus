@@ -1,4 +1,7 @@
-FROM node:22-alpine
+FROM node:22-slim
+
+# Install OpenSSL - Required for Prisma Client
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
 
 WORKDIR /app
 
