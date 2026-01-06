@@ -33,6 +33,7 @@ const [shieldCounts, setShieldCounts] = useState<Record<string, number>>({});
 const shieldSocket = useRef<any>(null);
 const shieldSound = useRef<Audio.Sound | null>(null);
 
+// Assets
 const SHIELD_SOUNDS: Record<string, any> = {
   'commuter': require('../../assets/sounds/shield_commuter.mp3'),
   'office': require('../../assets/sounds/shield_office.mp3'),
@@ -40,24 +41,24 @@ const SHIELD_SOUNDS: Record<string, any> = {
   'sky': require('../../assets/sounds/shield_sky.mp3'),
 };
 
+const SHIELD_VIDEOS: Record<string, any> = {
+  'commuter': { uri: 'https://static.videezy.com/system/resources/previews/000/005/016/original/Subway_Train_Passing_Platform.mp4' }, // Placeholder 
+  'office': { uri: 'https://static.videezy.com/system/resources/previews/000/008/296/original/View_of_busy_office.mp4' },
+  'nomad': { uri: 'https://static.videezy.com/system/resources/previews/000/004/937/original/Foggy_Pine_Wood_Forest.mp4' },
+  'sky': { uri: 'https://static.videezy.com/system/resources/previews/000/005/527/original/Clouds_Time_Lapse_1080p.mp4' },
+};
+
+import VideoBackground from '@/components/VideoBackground';
+
 const handleShieldSelect = async (mode: ShieldMode) => {
   setActiveShield(mode);
 
   // 1. Socket Logic
-  if (shieldSocket.current) {
-    if (mode) {
-      shieldSocket.current.emit('join_shield_room', mode);
-    } else {
-      // If turning off, leave all potentially (or just track previous). 
-      // Simplification: We assume switching modes handles join/leave serves as a switch
-      // Ideally we'd track previous mode to leave.
-      // For MVP, simply re-joining new room works if we clear listeners. 
-      // But managing leave is better. Let's just emit join for new one.
-      // Refinement: socket.io handles room switching if we implement it, but here we manually join.
-    }
+  if (shieldSocket.current && mode) {
+    shieldSocket.current.emit('join_shield_room', mode);
   }
 
-  // 2. Audio Logic (Adaptive Masking)
+  // 2. Audio Logic (Multi-Track Mixer Base) 🎚️
   if (shieldSound.current) {
     await shieldSound.current.unloadAsync();
     shieldSound.current = null;
@@ -65,7 +66,6 @@ const handleShieldSelect = async (mode: ShieldMode) => {
 
   if (mode) {
     try {
-      // For a real app, we would cross-fade.
       const { sound } = await Audio.Sound.createAsync(
         SHIELD_SOUNDS[mode],
         { shouldPlay: true, isLooping: true, volume: 0.8 }
@@ -78,8 +78,7 @@ const handleShieldSelect = async (mode: ShieldMode) => {
 const sendHeartbeat = () => {
   if (activeShield && shieldSocket.current) {
     shieldSocket.current.emit('shield_heartbeat', { shieldMode: activeShield });
-    // Visual feedback could be added here
-    alert("Silent High-Five sent! 👋"); // Temporary feedback
+    alert("Silent High-Five sent! 👋");
   }
 };
 
@@ -91,11 +90,6 @@ useEffect(() => {
     setShieldCounts(prev => ({ ...prev, [data.mode]: data.count }));
   });
 
-  shieldSocket.current.on('shield_signal', () => {
-    // Received a high-five
-    // Trigger Haptic or minimal visual
-  });
-
   return () => {
     shieldSocket.current?.disconnect();
     if (shieldSound.current) shieldSound.current.unloadAsync();
@@ -104,7 +98,6 @@ useEffect(() => {
 
 const handleReveal = async (profileId: number) => {
   try {
-    // Secure Reveal: Fetch the real URL from backend
     const res = await axios.post(`${API_URL}/reveal-user`, { userId: profileId });
     if (res.data.avatarUrl) {
       setProfiles(prev => prev.map(p =>
@@ -119,7 +112,6 @@ const handleReveal = async (profileId: number) => {
 };
 
 useEffect(() => {
-  // Quick MVP Fetch (mocking backend response structure for now to ensure UI works even if backend is not running in this env)
   const fetchUsers = async () => {
     try {
       const res = await axios.get(`${API_URL}/users`);
@@ -129,14 +121,12 @@ useEffect(() => {
         throw new Error("No data");
       }
     } catch (e) {
-      // Fallback
       setProfiles([
         { id: 1, username: 'Elara', favTrigger: 'Rain', avatarUrl: 'https://images.unsplash.com/photo-1493666438817-866a91353ca9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' },
         { id: 2, username: 'Kael', favTrigger: 'Wind', avatarUrl: 'https://images.unsplash.com/photo-1542596594-649edbc13630?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' },
       ]);
     }
   }
-  fetchUsers();
   fetchUsers();
 }, []);
 
@@ -182,6 +172,13 @@ useEffect(() => {
   return (
     <SafeAreaView className="flex-1 bg-tingle-bg">
       <StatusBar barStyle="light-content" />
+
+      {/* Premium Video Background */}
+      <VideoBackground
+        source={activeShield ? SHIELD_VIDEOS[activeShield] : null}
+        isActive={!!activeShield}
+      />
+
       <SleepSyncScreen visible={showSleepMode} onClose={() => setShowSleepMode(false)} />
       <VisualCalibrator />
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
