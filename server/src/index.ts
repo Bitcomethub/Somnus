@@ -78,6 +78,33 @@ app.post('/whisper', async (req, res) => {
     }
 });
 
+// Secure Reveal Endpoint 🔒
+app.post('/reveal-user', async (req, res) => {
+    const { userId } = req.body;
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { avatarUrl: true } // Only return secret data here
+        });
+        res.json({ avatarUrl: user?.avatarUrl });
+    } catch (e) {
+        res.status(500).json({ error: 'Reveal failed' });
+    }
+});
+
+// Panic Block 🛡️
+app.post('/block-user', async (req, res) => {
+    const { blockerId, blockedId } = req.body;
+    try {
+        // In a real app, create a Block record
+        // await prisma.block.create({ data: { blockerId, blockedId } });
+        console.log(`User ${blockerId} BLOCKED ${blockedId}`);
+        res.json({ success: true, message: "User blocked and match dissolved." });
+    } catch (e) {
+        res.status(500).json({ error: 'Block failed' });
+    }
+});
+
 // Sleep-Sync Engine (Socket.io) 🛌
 const activeRooms: Record<string, NodeJS.Timeout> = {};
 

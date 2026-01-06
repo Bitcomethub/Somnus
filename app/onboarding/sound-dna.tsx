@@ -22,17 +22,70 @@ const TRIGGERS = [
     { id: 'Calibrating', label: 'Calibrating', icon: Radio, color: '#8B5CF6' },
 ];
 
+import { Audio } from 'expo-av';
+
+const SOUND_MAP: { [key: string]: any } = {
+    'ThumbLights': require('../../assets/sounds/waves.mp3'), // Fallback/Placeholder
+    'CoconutCrack': require('../../assets/sounds/tapping.mp3'),
+    'WaterClips': require('../../assets/sounds/rain.mp3'),
+    'Hairplay': require('../../assets/sounds/brushing.mp3'),
+    'TakingPhotos': require('../../assets/sounds/waves.mp3'),
+    'BodySpray': require('../../assets/sounds/waves.mp3'),
+    'GlueSticks': require('../../assets/sounds/tapping.mp3'),
+    'OceanTrigger': require('../../assets/sounds/waves.mp3'),
+    'Windshield': require('../../assets/sounds/waves.mp3'),
+    'Calibrating': require('../../assets/sounds/waves.mp3'),
+};
+
 export default function SoundDNA() {
     const router = useRouter();
     const [selected, setSelected] = useState<string | null>(null);
+    const [sound, setSound] = useState<Audio.Sound | null>(null);
+
+    // Unload sound on unmount
+    useEffect(() => {
+        return () => {
+            if (sound) {
+                console.log('Unloading Sound');
+                sound.unloadAsync();
+            }
+        };
+    }, [sound]);
+
+    const playSound = async (triggerId: string) => {
+        try {
+            // Stop previous sound
+            if (sound) {
+                await sound.unloadAsync();
+            }
+
+            const source = SOUND_MAP[triggerId];
+            if (!source) return;
+
+            console.log('Loading Sound');
+            const { sound: newSound } = await Audio.Sound.createAsync(
+                source,
+                { shouldPlay: true, isLooping: true, volume: 0.5 }
+            );
+            setSound(newSound);
+        } catch (error) {
+            console.log('Error playing sound:', error);
+        }
+    };
 
     const handleSelect = async (triggerId: string) => {
         await Haptics.selectionAsync();
         setSelected(triggerId);
         console.log(`Previewing VIP Room Sound: ${triggerId}`);
+        playSound(triggerId);
     };
 
     const handleConfirm = async () => {
+        if (sound) {
+            await sound.stopAsync();
+            await sound.unloadAsync();
+        }
+
         if (!selected) return;
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
