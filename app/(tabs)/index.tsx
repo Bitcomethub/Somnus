@@ -211,6 +211,9 @@ useEffect(() => {
         isActive={!!activeShield}
       />
 
+      {/* Phase 14: Living Device 🫁 */}
+      <BreathingLight isActive={!!activeShield} color="#a855f7" bpm={12} />
+
       <SleepSyncScreen visible={showSleepMode} onClose={() => setShowSleepMode(false)} />
       <VisualCalibrator />
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
@@ -360,7 +363,18 @@ useEffect(() => {
       </View>
     </ScrollView>
 
-    {/* Profile Modal */ }
+    {/* Phase 14: Passive Micro Survey */ }
+  <MicroSurvey
+    visible={showMicroSurvey}
+    question="Bu yağmur sesi seni çocukluğuna mı götürüyor? 🍼"
+    onAnswer={(ans) => {
+      setShowMicroSurvey(false);
+      alert(`Somnus AI: Not edildi (${ans}). Frekansına uygun birini bulduğumda haber vereceğim. ✨`);
+    }}
+    onDismiss={() => setShowMicroSurvey(false)}
+  />
+
+  {/* Profile Modal */ }
   <Modal
     animationType="fade"
     transparent={true}
