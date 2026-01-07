@@ -24,11 +24,12 @@ import GhostModePanel from '@/components/GhostModePanel';
 import PremiumLogo from '@/components/PremiumLogo';
 
 // --- Constants ---
-const SHIELD_SOUNDS: Record<string, any> = {
-  'commuter': require('../../assets/sounds/shield_commuter.mp3'),
-  'office': require('../../assets/sounds/shield_office.mp3'),
-  'nomad': require('../../assets/sounds/shield_nomad.mp3'),
-  'sky': require('../../assets/sounds/shield_sky.mp3'),
+// Using online audio URLs since local files are empty placeholders
+const SHIELD_SOUNDS: Record<string, { uri: string }> = {
+  'commuter': { uri: 'https://www.soundjay.com/transportation/sounds/train-1.mp3' },
+  'office': { uri: 'https://www.soundjay.com/human/sounds/keyboard-typing-2.mp3' },
+  'nomad': { uri: 'https://www.soundjay.com/nature/sounds/rain-01.mp3' },
+  'sky': { uri: 'https://www.soundjay.com/nature/sounds/wind-howl-1.mp3' },
 };
 
 const SHIELD_VIDEOS: Record<string, any> = {
