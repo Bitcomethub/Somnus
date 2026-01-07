@@ -1,12 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
-    withRepeat,
-    withTiming,
     withSpring,
-    Easing
 } from 'react-native-reanimated';
 import { Moon, Power, ShieldAlert } from 'lucide-react-native';
 import io from 'socket.io-client';
@@ -16,7 +13,12 @@ import { Audio } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 
-const Wave = ({ color, duration, scaleVal }: { color: string, duration: number, scaleVal: Animated.SharedValue<number> }) => {
+interface WaveProps {
+    color: string;
+    scaleVal: Animated.SharedValue<number>;
+}
+
+const Wave = ({ color, scaleVal }: WaveProps) => {
     const style = useAnimatedStyle(() => ({
         transform: [{ scale: scaleVal.value }],
         opacity: 0.15
@@ -26,15 +28,24 @@ const Wave = ({ color, duration, scaleVal }: { color: string, duration: number, 
     );
 };
 
-export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_room_1" }: { visible: boolean, onClose: () => void, roomId?: string }) {
-    if (!visible) return null;
+interface Props {
+    visible: boolean;
+    onClose: () => void;
+    roomId?: string;
+}
 
+export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_room_1" }: Props) {
+    // ALL HOOKS MUST BE DECLARED BEFORE ANY CONDITIONAL RETURNS
     const socket = useRef<any>(null);
     const [status, setStatus] = useState('S O M N U S');
+    const originalBrightnessRef = useRef<number | undefined>(undefined);
+
+    const myWave = useSharedValue(1);
+    const partnerWave = useSharedValue(1);
 
     // Experience: Screen Dimmer & Graceful Exit
     useEffect(() => {
-        let originalBrightness: number;
+        if (!visible) return;
 
         const setupExperience = async () => {
             // 1. Background Audio Setup
@@ -49,42 +60,32 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
                 console.log("Audio mode error", e);
             }
 
-            // 2. Dim Screen
-            try {
-                const { status } = await Brightness.requestPermissionsAsync();
-                if (status === 'granted') {
-                    originalBrightness = await Brightness.getBrightnessAsync();
-                    await Brightness.setBrightnessAsync(0.05); // Dim to 5%
-                }
-            } catch (e) { console.log('Brightness error', e); }
+            // 2. Dim Screen (iOS only)
+            if (Platform.OS === 'ios') {
+                try {
+                    const { status } = await Brightness.requestPermissionsAsync();
+                    if (status === 'granted') {
+                        originalBrightnessRef.current = await Brightness.getBrightnessAsync();
+                        await Brightness.setBrightnessAsync(0.05); // Dim to 5%
+                    }
+                } catch (e) { console.log('Brightness error', e); }
+            }
         };
 
         setupExperience();
 
         return () => {
             // Graceful Cleanup
-            if (originalBrightness !== undefined) {
-                Brightness.setBrightnessAsync(originalBrightness); // Restore
+            if (originalBrightnessRef.current !== undefined) {
+                Brightness.setBrightnessAsync(originalBrightnessRef.current);
             }
-            // Cleanup function for audio fade-out would go here
-            console.log("Graceful Disconnect: Fading out audio...");
         };
-    }, []);
+    }, [visible]);
 
-    const handlePanic = () => {
-        // Immediate Block & Leave
-        setStatus("BLOCKING...");
-
-        setTimeout(() => {
-            if (socket.current) socket.current.disconnect();
-            onClose();
-        }, 500);
-    };
-
-    const myWave = useSharedValue(1);
-    const partnerWave = useSharedValue(1);
-
+    // Socket connection
     useEffect(() => {
+        if (!visible) return;
+
         socket.current = io(API_URL);
         socket.current.emit('join_sleep_room', roomId);
 
@@ -92,17 +93,26 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
             setStatus('Partner is syncing...');
         });
 
-        // Real-time Pulse Listener
         socket.current.on('sync_pulse', (data: { amplitude: number }) => {
-            // Apply organic spring physics to the pulse
             partnerWave.value = withSpring(data.amplitude, { damping: 10, stiffness: 80 });
-            myWave.value = withSpring(data.amplitude * 0.9, { damping: 12, stiffness: 90 }); // Slight variation
+            myWave.value = withSpring(data.amplitude * 0.9, { damping: 12, stiffness: 90 });
         });
 
         return () => {
             socket.current?.disconnect();
         };
-    }, []);
+    }, [visible, roomId]);
+
+    const handlePanic = () => {
+        setStatus("BLOCKING...");
+        setTimeout(() => {
+            if (socket.current) socket.current.disconnect();
+            onClose();
+        }, 500);
+    };
+
+    // CONDITIONAL RETURN AFTER ALL HOOKS
+    if (!visible) return null;
 
     return (
         <View style={styles.container}>
@@ -111,8 +121,8 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
 
             {/* Visualizer: Dual Waves */}
             <View style={styles.visualizerContainer}>
-                <Wave color="#A855F7" duration={4500} scaleVal={myWave} />
-                <Wave color="#3B82F6" duration={4500} scaleVal={partnerWave} />
+                <Wave color="#A855F7" scaleVal={myWave} />
+                <Wave color="#3B82F6" scaleVal={partnerWave} />
 
                 <View style={styles.core}>
                     <Moon size={32} color="rgba(255,255,255,0.5)" />
@@ -142,7 +152,7 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
 const styles = StyleSheet.create({
     container: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: '#09090B', // OLED Black
+        backgroundColor: '#09090B',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 9999,
@@ -190,7 +200,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         letterSpacing: 1,
         marginBottom: 8,
-        fontFamily: 'System', // Elegant default
     },
     leaveButton: {
         position: 'absolute',
