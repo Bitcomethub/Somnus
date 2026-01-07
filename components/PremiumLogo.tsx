@@ -75,8 +75,8 @@ export default function PremiumLogo({ mode = 'default' }: Props) {
                     />
                 </View>
 
-                {/* Soft vignette overlay to blend edges */}
-                <View style={styles.vignetteOverlay} />
+                {/* Soft vignette overlay to blend edges - MUST NOT BLOCK TOUCHES */}
+                <View style={styles.vignetteOverlay} pointerEvents="none" />
             </BlurView>
         </View>
     );
