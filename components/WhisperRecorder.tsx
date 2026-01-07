@@ -17,15 +17,21 @@ export default function WhisperRecorder({ receiverId, onSent }: { receiverId: nu
                 if (resp.status !== 'granted') return;
             }
 
+            // Prevent double recording
+            if (recording) {
+                console.log('Recording already in progress');
+                return;
+            }
+
             await Audio.setAudioModeAsync({
                 allowsRecordingIOS: true,
                 playsInSilentModeIOS: true,
             });
 
-            const { recording } = await Audio.Recording.createAsync(
+            const { recording: newRecording } = await Audio.Recording.createAsync(
                 Audio.RecordingOptionsPresets.HIGH_QUALITY
             );
-            setRecording(recording);
+            setRecording(newRecording);
 
             // 10s Limit Logic (Simple timeout)
             setTimeout(() => {
