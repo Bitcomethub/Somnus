@@ -311,14 +311,13 @@ export default function HomeScreen() {
           <PremiumLogo mode={activeShield || 'default'} />
         </View>
 
-        {/* AI Vibe Input */}
-        <View className="mx-6 mb-8">
-          <Text className="text-gray-400 text-xs mb-2 uppercase tracking-widest pl-1">Vibe Engine (AI)</Text>
-          <View className="flex-row items-center bg-tingle-card rounded-xl p-2 border border-white/10">
+        {/* Somnus'a Sor - AI removed */}
+        <View className="mx-6 mb-6">
+          <View className="flex-row items-center bg-tingle-card/60 rounded-2xl p-3 border border-white/10">
             <TextInput
-              placeholder="How are you feeling?"
+              placeholder="Somnus'a sor... Nasıl hissediyorsun?"
               placeholderTextColor="#64748b"
-              className="flex-1 text-white p-2"
+              className="flex-1 text-white p-2 text-sm"
               value={vibeText}
               onChangeText={setVibeText}
               onSubmitEditing={() => handleVibeCheck(vibeText)}
@@ -326,14 +325,14 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={() => handleVibeCheck(vibeText)}
               disabled={isAnalyzing}
-              className="bg-tingle-primary p-2 rounded-lg"
+              className="bg-tingle-primary p-2.5 rounded-xl"
             >
-              {isAnalyzing ? <ActivityIndicator color="white" size="small" /> : <Zap size={18} color="white" />}
+              {isAnalyzing ? <ActivityIndicator color="white" size="small" /> : <Sparkles size={18} color="white" />}
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
-            {RECOMMENDED_VIBES.map((v, i) => (
-              <TouchableOpacity key={i} onPress={() => handleVibeCheck(v)} className="mr-2 bg-white/5 px-3 py-1 rounded-full border border-white/5">
+            {["Yorgunum", "Odaklanmam lazım", "Stres var", "Yeni uyandım"].map((v, i) => (
+              <TouchableOpacity key={i} onPress={() => handleVibeCheck(v)} className="mr-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
                 <Text className="text-gray-400 text-xs">{v}</Text>
               </TouchableOpacity>
             ))}

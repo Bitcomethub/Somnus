@@ -5,7 +5,7 @@ import Animated, {
     useAnimatedStyle,
     withSpring,
 } from 'react-native-reanimated';
-import { Moon, Power, ShieldAlert } from 'lucide-react-native';
+import { Moon, Power, ShieldAlert, X } from 'lucide-react-native';
 import io from 'socket.io-client';
 import { API_URL } from '@/constants/API';
 import * as Brightness from 'expo-brightness';
@@ -119,6 +119,17 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
             {/* Ultra-Dark OLED Background */}
             <View style={styles.background} />
 
+            {/* TOP: Close Button - Very prominent */}
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <X size={28} color="#fff" />
+            </TouchableOpacity>
+
+            {/* Panic/Block Button - Top Right */}
+            <TouchableOpacity style={styles.panicButton} onPress={handlePanic}>
+                <ShieldAlert color="#ef4444" size={20} />
+                <Text style={styles.panicText}>ENGELLE</Text>
+            </TouchableOpacity>
+
             {/* Visualizer: Dual Waves */}
             <View style={styles.visualizerContainer}>
                 <Wave color="#A855F7" scaleVal={myWave} />
@@ -135,15 +146,10 @@ export default function SleepSyncScreen({ visible, onClose, roomId = "somnus_roo
                 <Text style={styles.subSlogan}>Yalnız Uyumaya Elveda.</Text>
             </View>
 
+            {/* Bottom: Leave Button - More prominent */}
             <TouchableOpacity style={styles.leaveButton} onPress={onClose}>
-                <Power color="#64748b" size={24} />
-                <Text style={styles.leaveText}>Leave Quietly</Text>
-            </TouchableOpacity>
-
-            {/* Panic Button */}
-            <TouchableOpacity style={styles.panicButton} onPress={handlePanic}>
-                <ShieldAlert color="#ef4444" size={20} />
-                <Text style={styles.panicText}>BLOCK</Text>
+                <Power color="#a855f7" size={28} />
+                <Text style={styles.leaveText}>Sessizce Ayrıl</Text>
             </TouchableOpacity>
         </View>
     );
@@ -203,30 +209,52 @@ const styles = StyleSheet.create({
     },
     leaveButton: {
         position: 'absolute',
-        bottom: 50,
+        bottom: 60,
         alignItems: 'center',
-        opacity: 0.7,
         flexDirection: 'row',
-        gap: 8,
+        gap: 12,
+        backgroundColor: 'rgba(168, 85, 247, 0.2)',
+        paddingHorizontal: 24,
+        paddingVertical: 14,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: 'rgba(168, 85, 247, 0.3)',
     },
     leaveText: {
-        color: '#475569',
-        fontSize: 12,
+        color: '#a855f7',
+        fontSize: 14,
         textTransform: 'uppercase',
         letterSpacing: 2,
+        fontWeight: '500',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 50,
+        left: 24,
+        width: 44,
+        height: 44,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     panicButton: {
         position: 'absolute',
-        top: 60,
-        right: 30,
+        top: 50,
+        right: 24,
         alignItems: 'center',
-        opacity: 0.8,
-        flexDirection: 'column',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.3)',
+        flexDirection: 'row',
+        gap: 6,
     },
     panicText: {
         color: '#ef4444',
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: 'bold',
-        marginTop: 4,
     }
 });
