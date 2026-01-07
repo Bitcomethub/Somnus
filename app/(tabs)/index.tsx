@@ -7,6 +7,7 @@ import { Audio } from 'expo-av';
 import io from 'socket.io-client';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_URL } from '@/constants/API';
 import DataConstants from '@/constants/Data'; // Assuming this exists or using inline
@@ -86,10 +87,32 @@ export default function HomeScreen() {
     );
   }, []);
 
+  // Zero-Look Entry: Auto-play last selected shield on app launch
+  useEffect(() => {
+    const restoreLastShield = async () => {
+      try {
+        const lastShield = await AsyncStorage.getItem('somnus_last_shield');
+        if (lastShield && SHIELD_SOUNDS[lastShield]) {
+          handleShieldSelect(lastShield as ShieldMode);
+        }
+      } catch (e) {
+        console.log('Failed to restore last shield:', e);
+      }
+    };
+    restoreLastShield();
+  }, []);
+
   // --- Handlers ---
   const handleShieldSelect = async (mode: ShieldMode) => {
     setActiveShield(mode);
     setVibeText(""); // Clear vibe text on manual select
+
+    // Zero-Look: Persist selected shield for next launch
+    if (mode) {
+      AsyncStorage.setItem('somnus_last_shield', mode);
+    } else {
+      AsyncStorage.removeItem('somnus_last_shield');
+    }
 
     // 1. Socket Join
     if (shieldSocket.current && mode) {
