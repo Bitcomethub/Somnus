@@ -261,11 +261,16 @@ export default function HomeScreen() {
       />
       <BreathingLight isActive={!!activeShield} mode={activeShield || 'default'} bpm={12} />
 
-      {/* Overlays */}
+      {/* Overlays - Only visible when triggered */}
       <SleepSyncScreen visible={showSleepMode} onClose={() => setShowSleepMode(false)} />
       <VisualCalibrator />
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
+      {/* Main Content - Must be above background layers */}
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 100 }}
+        style={{ zIndex: 10 }}
+      >
 
         {/* Header with Premium Logo */}
         <View className="pt-4 pb-2">
