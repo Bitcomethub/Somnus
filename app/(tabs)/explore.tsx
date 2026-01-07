@@ -31,20 +31,30 @@ export default function ExploreScreen() {
 
     // If same sound is playing, stop it
     if (playingId === item.id) {
-      if (soundRef.current) {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
+      try {
+        if (soundRef.current) {
+          const status = await soundRef.current.getStatusAsync();
+          if (status.isLoaded) {
+            await soundRef.current.stopAsync();
+            await soundRef.current.unloadAsync();
+          }
+          soundRef.current = null;
+        }
+      } catch (e) { /* ignore */ }
       setPlayingId(null);
       return;
     }
 
     // Stop any currently playing sound
-    if (soundRef.current) {
-      await soundRef.current.stopAsync();
-      await soundRef.current.unloadAsync();
-    }
+    try {
+      if (soundRef.current) {
+        const status = await soundRef.current.getStatusAsync();
+        if (status.isLoaded) {
+          await soundRef.current.stopAsync();
+          await soundRef.current.unloadAsync();
+        }
+      }
+    } catch (e) { /* ignore */ }
 
     // Play new sound with loop
     try {
@@ -56,6 +66,7 @@ export default function ExploreScreen() {
       setPlayingId(item.id);
     } catch (e) {
       console.log('Audio playback error:', e);
+      setPlayingId(null);
     }
   };
 
@@ -80,8 +91,8 @@ export default function ExploreScreen() {
                 key={item.id}
                 onPress={() => handlePlay(item)}
                 className={`w-[48%] p-4 rounded-2xl mb-4 border ${isPlaying
-                    ? 'bg-purple-900/40 border-purple-500/50'
-                    : 'bg-tingle-card border-white/5'
+                  ? 'bg-purple-900/40 border-purple-500/50'
+                  : 'bg-tingle-card border-white/5'
                   }`}
                 activeOpacity={0.7}
               >
