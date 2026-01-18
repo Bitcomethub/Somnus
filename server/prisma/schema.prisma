@@ -16,6 +16,7 @@ model User {
   triggerInventory String[]
   currentVibe      String?
   emberBalance     Int      @default(10) // Hearth Currency 🔥
+  balance          Float    @default(0.0) // Somnus 2.0 Economy
   sensoryTolerance Int      @default(5) // 1-10 Scale (1: Whisper only, 10: Loud storms)
   totalFocusMinutes Int     @default(0) // Leveling System ⭐️
   vibeEmbedding    String?  // Semantic Vibe Tag (Simplified for Railway compatibility)
@@ -64,4 +65,15 @@ model Whisper {
 
   sender     User     @relation("Sender", fields: [senderId], references: [id])
   receiver   User     @relation("Receiver", fields: [receiverId], references: [id])
+}
+
+model Transaction {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  amount     Float
+  type       String   // e.g., "GIFT", "PURCHASE"
+  giftType   String?  // e.g., "SOFT_WHISPER", "HAPTIC_PULSE"
+  status     String   @default("COMPLETED")
+  timestamp  DateTime @default(now())
 }

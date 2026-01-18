@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
-import { Audio } from 'expo-av';
-import { Mic, StopCircle, Send } from 'lucide-react-native';
-import axios from 'axios';
 import { API_URL } from '@/constants/API';
+import axios from 'axios';
+import { Audio } from 'expo-av';
+import { Mic, Send } from 'lucide-react-native';
+import { useState } from 'react';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
 
 export default function WhisperRecorder({ receiverId, onSent }: { receiverId: number, onSent: () => void }) {
     const [recording, setRecording] = useState<Audio.Recording | null>(null);
@@ -69,7 +69,7 @@ export default function WhisperRecorder({ receiverId, onSent }: { receiverId: nu
                 const base64data = reader.result?.toString().split(',')[1]; // Remove 'data:audio/...'
 
                 await axios.post(`${API_URL}/whisper`, {
-                    senderId: 1, // Mock sender Me
+                    // senderId: removed hardcoded 1, backend defaults to current user mock
                     receiverId,
                     audioData: base64data
                 });

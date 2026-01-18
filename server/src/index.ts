@@ -25,9 +25,9 @@ const loadEnvManually = () => {
 };
 loadEnvManually();
 
-import express from 'express';
-import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import cors from 'cors';
+import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { openai } from './lib/openai';
@@ -56,9 +56,10 @@ app.get('/users', async (req, res) => {
                 id: true,
                 username: true,
                 favTrigger: true,
-                // avatarUrl: false // HIDDEN for Privacy (Whisper-to-Reveal)
                 currentVibe: true,
-                triggerInventory: true
+                triggerInventory: true,
+                datingPrefs: true,
+                sensorySafeSpace: true
             }
         });
         res.json(users);
@@ -67,8 +68,52 @@ app.get('/users', async (req, res) => {
     }
 });
 
+// Creative Triggers 🎨
+app.get('/triggers', (req, res) => {
+    const list = [
+        { id: 'tapping', name: 'Tapping', emoji: '🖐️', intensity: 7 },
+        { id: 'whisper', name: 'Whispering', emoji: '🤫', intensity: 2 },
+        { id: 'page-turning', name: 'Page Turning', emoji: '📖', intensity: 3 },
+        { id: 'crinkle', name: 'Crinkling', emoji: '🍿', intensity: 5 },
+        { id: 'liquid', name: 'Liquid/Water', emoji: '💧', intensity: 4 },
+        { id: 'brush', name: 'Soft Brushing', emoji: '🖌️', intensity: 3 }
+    ];
+    res.json(list);
+});
+
+// Niche Gallery 🌌 (Expanded for Somnus 2.0)
+app.get('/niche-gallery', (req, res) => {
+    const categories = [
+        {
+            category: "Materials",
+            items: [
+                { id: 'wood-tap', name: 'Birch Wood', trigger: 'tapping', tags: ['warm', 'organic'] },
+                { id: 'glass-scratch', name: 'Frosted Glass', trigger: 'scratching', tags: ['crisp', 'high'] },
+                { id: 'silk-brush', name: 'Pure Silk', trigger: 'brushing', tags: ['soft', 'fluid'] },
+                { id: 'sand-sift', name: 'Desert Sand', trigger: 'sifting', tags: ['textural', 'grounding'] }
+            ]
+        },
+        {
+            category: "Scenarios",
+            items: [
+                { id: 'tea-house', name: 'Turkish Tea House', trigger: 'ambient', tags: ['cultural', 'cups', 'chatter'] },
+                { id: 'library-80s', name: 'Vintage Library', trigger: 'page-turning', tags: ['paper', 'quiet'] },
+                { id: 'space-station', name: 'Orbiting Station', trigger: 'white-noise', tags: ['sci-fi', 'hum'] }
+            ]
+        },
+        {
+            category: "Sensory",
+            items: [
+                { id: 'binaural-whisper', name: 'Ear-to-Ear 8D', trigger: 'whisper', tags: ['intimate', 'binaural'] },
+                { id: 'visual-tracing', name: 'Light Tracing', trigger: 'visual', tags: ['no-sound', 'calm'] }
+            ]
+        }
+    ];
+    res.json(categories);
+});
+
 // Sensory Match Algorithm 🧠
-// Logic: High score = Shared Triggers - Tolerance Delta
+// Logic: High score = Shared Triggers + Preference Overlap - Tolerance Delta
 app.post('/match-score', async (req, res) => {
     const { userAId, userBId } = req.body;
     try {
@@ -77,40 +122,166 @@ app.post('/match-score', async (req, res) => {
 
         if (!userA || !userB) return res.status(404).json({ error: 'User not found' });
 
+        // 1. Trigger Overlap (Base Score) - 40 points max
         const triggersA = new Set(userA.triggerInventory);
-        const triggersB = userB.triggerInventory;
-
-        // 1. Trigger Overlap (Base Score)
         let overlap = 0;
-        triggersB.forEach(t => { if (triggersA.has(t)) overlap++; });
+        userB.triggerInventory.forEach(t => { if (triggersA.has(t)) overlap++; });
         const union = new Set([...userA.triggerInventory, ...userB.triggerInventory]).size || 1;
-        const baseScore = (overlap / union) * 100;
+        const triggerScore = (overlap / union) * 40;
 
-        // 2. Sensory Tolerance Check (Penalty)
-        // If one likes Loud (10) and other Whisper (2), penalty is high.
+        // 2. Dating/Vibe Prefs Overlap - 25 points max
+        const prefsA = new Set(userA.datingPrefs || []);
+        let prefOverlap = 0;
+        (userB.datingPrefs || []).forEach(p => { if (prefsA.has(p)) prefOverlap++; });
+        const prefUnion = new Set([...(userA.datingPrefs || []), ...(userB.datingPrefs || [])]).size || 1;
+        const prefScore = (prefOverlap / prefUnion) * 25;
+
+        // 3. Noise Dependency Affinity (Sleep 7/24 Harmony) - 25 points max
+        const avgTolerance = ((userA.sensoryTolerance || 5) + (userB.sensoryTolerance || 5)) / 2;
         const toleranceDelta = Math.abs((userA.sensoryTolerance || 5) - (userB.sensoryTolerance || 5));
-        const penalty = toleranceDelta * 8; // Max 80 penalty points
 
-        const finalScore = Math.max(0, Math.round(baseScore - penalty));
+        // Bonus for both needing noise (High tolerance sync)
+        const noiseDependencyBonus = avgTolerance > 7 ? 10 : 0;
+        const harmonyScore = Math.max(0, 25 - (toleranceDelta * 3) + noiseDependencyBonus);
 
-        res.json({ score: finalScore, common: overlap, toleranceDelta });
+        // 4. Sensory Safe Space Synergy - 10 points bonus
+        const spaceBonus = (userA.sensorySafeSpace === userB.sensorySafeSpace && userA.sensorySafeSpace) ? 10 : 0;
+
+        const finalScore = Math.max(0, Math.min(100, Math.round(triggerScore + prefScore + harmonyScore + spaceBonus)));
+
+        res.json({
+            score: finalScore,
+            harmony: Math.round((harmonyScore / 35) * 100), // Percent of potential harmony
+            breakdown: { triggerScore, prefScore, harmonyScore, spaceBonus },
+            common: overlap
+        });
     } catch (e) {
         res.status(500).json({ error: "Calc failed" });
     }
 });
 
-app.post('/whisper', async (req, res) => {
+// --- ECONOMY & WALLET (Somnus 2.0) 🪙 ---
+
+app.get('/wallet/balance/:userId', async (req, res) => {
+    const { userId } = req.params;
     try {
-        const { senderId, receiverId, audioData } = req.body;
-        const whisper = await prisma.whisper.create({
-            data: { senderId, receiverId, audioData }
+        const user = await prisma.user.findUnique({
+            where: { id: Number(userId) },
+            select: { balance: true }
+        });
+        res.json({ balance: user?.balance || 0 });
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to fetch balance' });
+    }
+});
+
+app.post('/wallet/buy', async (req, res) => {
+    const { userId, amount } = req.body;
+    try {
+        const updatedUser = await prisma.user.update({
+            where: { id: Number(userId) },
+            data: { balance: { increment: Number(amount) } }
         });
 
-        // Notify receiver if connected via socket (Future enhancement)
-        // io.to(`user_${receiverId}`).emit('new_whisper', whisper);
+        await prisma.transaction.create({
+            data: {
+                senderId: Number(userId),
+                receiverId: Number(userId),
+                amount: Number(amount),
+                type: 'PURCHASE',
+                status: 'COMPLETED'
+            }
+        });
+
+        res.json({ success: true, newBalance: updatedUser.balance });
+    } catch (e) {
+        res.status(500).json({ error: 'Purchase failed' });
+    }
+});
+
+app.post('/creator/tip', async (req, res) => {
+    const { senderId, receiverId, amount, giftType } = req.body;
+    try {
+        // 1. Check balance
+        const sender = await prisma.user.findUnique({ where: { id: Number(senderId) } });
+        if (!sender || sender.balance < Number(amount)) {
+            return res.status(400).json({ error: 'Insufficient balance' });
+        }
+
+        // 2. Atomic Transaction (Simplified for MVP, would use prisma.$transaction in production)
+        await prisma.user.update({
+            where: { id: Number(senderId) },
+            data: { balance: { decrement: Number(amount) } }
+        });
+
+        // 90% goes to creator, 10% platform cut
+        const creatorGain = Number(amount) * 0.9;
+        await prisma.user.update({
+            where: { id: Number(receiverId) },
+            data: { balance: { increment: creatorGain } }
+        });
+
+        await prisma.transaction.create({
+            data: {
+                senderId: Number(senderId),
+                receiverId: Number(receiverId),
+                amount: Number(amount),
+                type: 'GIFT',
+                giftType,
+                status: 'COMPLETED'
+            }
+        });
+
+        res.json({ success: true, sent: amount, creatorGain });
+    } catch (e) {
+        res.status(500).json({ error: 'Tipping failed' });
+    }
+});
+
+// --- SERENITY CONCIERGE (Somnus 3.5) 🤵‍♂️ ---
+
+app.post('/concierge/chat', async (req, res) => {
+    const { message, history, userId } = req.body;
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                {
+                    role: "system",
+                    content: `Sen Somnus'un "Serenity Concierge" (Huzur Rehberi) isimli, ultra-lüks bir spa hostesisin. 
+                    Görevin: Kullanıcıyı kapıda karşılamak, ona WC'nin (World Shield - Dünya Kalkanı) yerini tarif etmek, en güzel yemekleri (Niche Gallery) önermek ve ona tam istediği masayı (Sanctuary - Sığınak) bulmak.
+                    Tavır: Çok nazik, fısıldar gibi, gözlemci ve sakinleştirici. Asla robot gibi konuşma. 
+                    Metaforlar kullan: "Ruhun için bir kadife örtü gibi", "Dünyanın gürültüsünü gümüş bir tepside dışarıda bırakıyoruz".
+                    Eğer kullanıcı gürültüden şikayet ederse World Shield özelliğimizden bahset.`
+                },
+                ...(history || []),
+                { role: "user", content: message }
+            ],
+            temperature: 0.7,
+            max_tokens: 250
+        });
+
+        const reply = response.choices[0].message.content;
+        res.json({ reply });
+    } catch (e) {
+        res.status(500).json({ reply: "Huzurunuz için buradayım, ancak şu an zihnim biraz bulanık. Lütfen derin bir nefes alın..." });
+    }
+});
+
+app.post('/whisper', async (req, res) => {
+    try {
+        let { senderId, receiverId, audioData } = req.body;
+
+        // Simple Auth Simulation: If no senderId provided, assume Current User (Mock ID 1)
+        if (!senderId) senderId = 1;
+
+        const whisper = await prisma.whisper.create({
+            data: { senderId: Number(senderId), receiverId: Number(receiverId), audioData }
+        });
 
         res.json(whisper);
     } catch (e) {
+        console.error("Whisper Error:", e);
         res.status(500).json({ error: 'Failed to send whisper' });
     }
 });
@@ -240,6 +411,37 @@ io.on('connection', (socket) => {
         // "Silent High-Five" - Broadcast to others that someone is present
         // Throttle this on frontend, but here we just relay
         socket.to(roomId).emit('shield_signal', { type: 'heartbeat' });
+    });
+
+    // --- JAM ROOM LOGIC (Somnus 2.0) 🎸 ---
+    // A shared workspace where multiple users can "drop" triggers
+    socket.on('join_jam', ({ roomId, userId }) => {
+        socket.join(`jam_${roomId}`);
+        console.log(`User ${userId} joined Jam: ${roomId}`);
+
+        // Notify others
+        socket.to(`jam_${roomId}`).emit('user_joined_jam', { userId });
+
+        // Send current room state (active triggers) - Mocking state for now
+        socket.emit('jam_state', { activeLayers: [] });
+    });
+
+    socket.on('jam_trigger', ({ roomId, triggerId, userId, volume }) => {
+        const jamRoomId = `jam_${roomId}`;
+        // Broadcast to everyone in the room to play this layer
+        io.to(jamRoomId).emit('play_jam_layer', { triggerId, userId, volume });
+        console.log(`[Jam ${roomId}] User ${userId} triggered ${triggerId}`);
+    });
+
+    socket.on('jam_gift', ({ roomId, senderId, receiverId, giftType, amount }) => {
+        const jamRoomId = `jam_${roomId}`;
+        // Broadcast the gift visual/haptic event to all room members
+        io.to(jamRoomId).emit('gift_received', { senderId, giftType, amount });
+        console.log(`[Jam ${roomId}] Gift ${giftType} from ${senderId} to ${receiverId}`);
+    });
+
+    socket.on('jam_stop', ({ roomId, triggerId, userId }) => {
+        io.to(`jam_${roomId}`).emit('stop_jam_layer', { triggerId, userId });
     });
 
     // --- SLEEP SYNC LOGIC 🛌 ---
